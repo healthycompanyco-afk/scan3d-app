@@ -1,9 +1,9 @@
 fastapi
 uvicorn[standard]
 python-multipart
-supabase
+httpx==0.25.2
+supabase==2.3.4
 ffmpeg-python
 stripe
 python-jose[cryptography]
 python-dotenv
-httpx
