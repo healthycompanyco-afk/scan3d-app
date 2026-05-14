@@ -1,7 +1,6 @@
 """
 Pipeline de reconstrução 3D no Modal.com
 Fluxo: fotos/vídeo → COLMAP (SfM + MVS) → Open3D (malha) → .glb
-Usa imagem Docker com COLMAP pré-instalado para evitar compilação.
 """
 import modal
 import os
@@ -10,17 +9,12 @@ import tempfile
 import shutil
 from pathlib import Path
 
-# Imagem baseada no Ubuntu com COLMAP já instalado via apt
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .env({"DEBIAN_FRONTEND": "noninteractive", "TZ": "Europe/Lisbon"})
-    .apt_install(
-        "ffmpeg",
-        "colmap",
-        "libgl1",
-        "libglib2.0-0",
-    )
+    .apt_install("ffmpeg", "colmap", "libgl1", "libglib2.0-0")
     .pip_install(
+        "fastapi[standard]",
         "supabase==2.3.4",
         "open3d==0.18.0",
         "trimesh==4.1.3",
@@ -32,21 +26,30 @@ image = (
 
 app = modal.App("scan3d-processing", image=image)
 
-SUPABASE_URL_SECRET = modal.Secret.from_name("supabase-url")
-SUPABASE_KEY_SECRET = modal.Secret.from_name("supabase-service-key")
+SECRETS = [
+    modal.Secret.from_name("supabase-url"),
+    modal.Secret.from_name("supabase-service-key"),
+]
 
 
-@app.function(
-    gpu="T4",
-    timeout=1800,
-    secrets=[SUPABASE_URL_SECRET, SUPABASE_KEY_SECRET],
-)
+@app.function(secrets=SECRETS)
+@modal.fastapi_endpoint(method="POST")
+def reconstruct_endpoint(body: dict):
+    """Web endpoint HTTP — recebe pedido e dispara processamento assíncrono."""
+    reconstruct.spawn(
+        model_id=body["model_id"],
+        user_id=body["user_id"],
+        input_type=body["input_type"],
+    )
+    return {"status": "started", "model_id": body["model_id"]}
+
+
+@app.function(gpu="T4", timeout=1800, secrets=SECRETS)
 def reconstruct(model_id: str, user_id: str, input_type: str):
-    """Função principal que corre no Modal.com."""
+    """Função principal de reconstrução 3D — corre na GPU."""
     from supabase import create_client
     import ffmpeg
     import open3d as o3d
-    import numpy as np
     import trimesh
 
     sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_KEY"])
@@ -67,27 +70,24 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
         output_dir.mkdir()
 
         try:
-            # 1. Descarregar ficheiros do Supabase Storage
+            # 1. Descarregar ficheiros
             files = sb.storage.from_("uploads").list(f"{user_id}/{model_id}")
             for f in files:
                 path = f"{user_id}/{model_id}/{f['name']}"
                 data = sb.storage.from_("uploads").download(path)
                 (workdir / f["name"]).write_bytes(data)
 
-            # 2. Extrair frames se for vídeo
+            # 2. Extrair frames do vídeo ou copiar fotos
             if input_type == "video":
                 update_status("extracting")
                 video_files = (
-                    list(workdir.glob("*.mp4")) +
-                    list(workdir.glob("*.mov")) +
-                    list(workdir.glob("*.avi")) +
-                    list(workdir.glob("*.webm"))
+                    list(workdir.glob("*.mp4")) + list(workdir.glob("*.mov")) +
+                    list(workdir.glob("*.avi")) + list(workdir.glob("*.webm"))
                 )
                 if not video_files:
                     raise ValueError("Nenhum ficheiro de vídeo encontrado.")
                 (
-                    ffmpeg
-                    .input(str(video_files[0]))
+                    ffmpeg.input(str(video_files[0]))
                     .filter("fps", fps=2)
                     .output(str(frames_dir / "frame_%04d.jpg"), qscale=2)
                     .run(quiet=True)
@@ -99,14 +99,13 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
 
             frame_count = len(list(frames_dir.glob("*")))
             if frame_count < 10:
-                raise ValueError(f"Imagens insuficientes ({frame_count}). Usa mais fotos ou um vídeo mais longo.")
+                raise ValueError(f"Imagens insuficientes ({frame_count}).")
 
             sb.table("models").update({
-                "frames_count": frame_count,
-                "status": "processing"
+                "frames_count": frame_count, "status": "processing"
             }).eq("id", model_id).execute()
 
-            # 3. COLMAP — Feature extraction
+            # 3. COLMAP — Feature extraction + matching
             db_path = str(colmap_dir / "database.db")
             subprocess.run([
                 "colmap", "feature_extractor",
@@ -116,14 +115,13 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
                 "--SiftExtraction.use_gpu", "1",
             ], check=True, capture_output=True)
 
-            # 4. COLMAP — Feature matching
             subprocess.run([
                 "colmap", "exhaustive_matcher",
                 "--database_path", db_path,
                 "--SiftMatching.use_gpu", "1",
             ], check=True, capture_output=True)
 
-            # 5. COLMAP — Sparse reconstruction (Structure from Motion)
+            # 4. COLMAP — Structure from Motion
             sparse_dir = colmap_dir / "sparse"
             sparse_dir.mkdir()
             subprocess.run([
@@ -133,7 +131,7 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
                 "--output_path", str(sparse_dir),
             ], check=True, capture_output=True)
 
-            # 6. COLMAP — Dense reconstruction (patch match stereo)
+            # 5. COLMAP — Dense reconstruction
             dense_dir = colmap_dir / "dense"
             dense_dir.mkdir()
             subprocess.run([
@@ -155,11 +153,10 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
                 "--output_path", str(output_dir / "fused.ply"),
             ], check=True, capture_output=True)
 
-            # 7. Open3D — Converter nuvem de pontos em malha 3D
+            # 6. Open3D — Nuvem de pontos → malha 3D
             pcd = o3d.io.read_point_cloud(str(output_dir / "fused.ply"))
             pcd.estimate_normals()
             pcd.orient_normals_consistent_tangent_plane(30)
-
             mesh, _ = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=9)
             mesh = mesh.simplify_quadric_decimation(100_000)
             mesh.remove_degenerate_triangles()
@@ -167,14 +164,10 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
 
             obj_path = output_dir / "model.obj"
             glb_path = output_dir / "model.glb"
-
             o3d.io.write_triangle_mesh(str(obj_path), mesh)
+            trimesh.load(str(obj_path)).export(str(glb_path))
 
-            # Converter .obj → .glb com trimesh
-            loaded = trimesh.load(str(obj_path))
-            loaded.export(str(glb_path))
-
-            # 8. Upload para Supabase Storage
+            # 7. Upload para Supabase Storage
             glb_storage = f"{user_id}/{model_id}/model.glb"
             obj_storage = f"{user_id}/{model_id}/model.obj"
 
@@ -187,17 +180,14 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
                 {"content-type": "model/obj", "upsert": "true"}
             )
 
-            glb_url = sb.storage.from_("models").get_public_url(glb_storage)
-            obj_url = sb.storage.from_("models").get_public_url(obj_storage)
-
             sb.table("models").update({
                 "status": "done",
-                "model_url": glb_url,
-                "obj_url": obj_url,
+                "model_url": sb.storage.from_("models").get_public_url(glb_storage),
+                "obj_url": sb.storage.from_("models").get_public_url(obj_storage),
             }).eq("id", model_id).execute()
 
         except subprocess.CalledProcessError as e:
-            update_status("error", f"Erro COLMAP: {e.stderr.decode()[-300:] if e.stderr else str(e)}")
+            update_status("error", f"COLMAP: {e.stderr.decode()[-300:] if e.stderr else str(e)}")
             raise
         except Exception as e:
             update_status("error", str(e))

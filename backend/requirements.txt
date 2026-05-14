@@ -3,7 +3,7 @@ uvicorn[standard]
 python-multipart
 supabase
 ffmpeg-python
-modal
 stripe
 python-jose[cryptography]
 python-dotenv
+httpx
