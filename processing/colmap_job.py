@@ -15,7 +15,7 @@ image = (
     .apt_install("ffmpeg", "colmap", "libgl1", "libglib2.0-0")
     .pip_install(
         "fastapi[standard]",
-        "supabase==2.3.4",
+        "supabase>=2.7.0,<3.0.0",
         "open3d==0.18.0",
         "trimesh==4.1.3",
         "ffmpeg-python==0.2.0",
