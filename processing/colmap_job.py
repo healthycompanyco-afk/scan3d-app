@@ -112,13 +112,13 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
                 "--database_path", db_path,
                 "--image_path", str(frames_dir),
                 "--ImageReader.single_camera", "1",
-                "--SiftExtraction.use_gpu", "1",
+                "--SiftExtraction.use_gpu", "0",
             ], check=True, capture_output=True)
 
             subprocess.run([
                 "colmap", "exhaustive_matcher",
                 "--database_path", db_path,
-                "--SiftMatching.use_gpu", "1",
+                "--SiftMatching.use_gpu", "0",
             ], check=True, capture_output=True)
 
             # 4. COLMAP — Structure from Motion
