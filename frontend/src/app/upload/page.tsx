@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation'
 import PhotoUploader from '@/components/PhotoUploader'
 import VideoUploader from '@/components/VideoUploader'
 
-type InputMode = 'photos' | 'video'
+type InputMode = 'ai_single' | 'video' | 'photos'
 
 export default function UploadPage() {
-  const [mode, setMode] = useState<InputMode>('video')
+  const [mode, setMode] = useState<InputMode>('ai_single')
   const [name, setName] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
@@ -19,6 +19,7 @@ export default function UploadPage() {
   async function handleSubmit() {
     if (!name.trim()) { setError('Dá um nome ao modelo.'); return }
     if (files.length === 0) { setError('Carrega pelo menos um ficheiro.'); return }
+    if (mode === 'ai_single' && files.length > 1) { setError('O modo IA usa apenas 1 foto.'); return }
 
     setUploading(true)
     setError('')
@@ -27,7 +28,6 @@ export default function UploadPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      // Criar registo do modelo na base de dados
       const { data: model, error: dbError } = await supabase
         .from('models')
         .insert({ user_id: user.id, name, input_type: mode, status: 'pending' })
@@ -36,19 +36,22 @@ export default function UploadPage() {
 
       if (dbError) throw dbError
 
-      // Upload dos ficheiros para Supabase Storage
       const uploadPromises = files.map(file => {
         const path = `${user.id}/${model.id}/${file.name}`
         return supabase.storage.from('uploads').upload(path, file)
       })
       await Promise.all(uploadPromises)
 
-      // Enviar pedido ao backend para iniciar processamento
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reconstruct`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reconstruct`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model_id: model.id, user_id: user.id, input_type: mode }),
       })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Erro desconhecido' }))
+        throw new Error(err.detail || `Erro ${res.status}`)
+      }
 
       router.push(`/model/${model.id}`)
     } catch (e: unknown) {
@@ -56,6 +59,12 @@ export default function UploadPage() {
       setUploading(false)
     }
   }
+
+  const modes: { id: InputMode; emoji: string; label: string; sublabel: string }[] = [
+    { id: 'ai_single', emoji: '⚡', label: 'IA Rápida', sublabel: '1 foto · ~30 segundos' },
+    { id: 'video',     emoji: '🎥', label: 'Vídeo',    sublabel: 'melhor qualidade · ~20 min' },
+    { id: 'photos',    emoji: '📷', label: 'Fotos',    sublabel: '30-80 fotos · ~20 min' },
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,7 +76,7 @@ export default function UploadPage() {
         <h1 className="text-2xl font-bold mb-2">Novo modelo 3D</h1>
         <p className="text-gray-500 text-sm mb-8">Escolhe como queres capturar o produto.</p>
 
-        {/* Nome do modelo */}
+        {/* Nome */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-1">Nome do produto</label>
           <input
@@ -79,37 +88,76 @@ export default function UploadPage() {
           />
         </div>
 
-        {/* Escolha do modo */}
+        {/* Modo */}
         <div className="flex gap-3 mb-6">
-          {(['video', 'photos'] as InputMode[]).map(m => (
+          {modes.map(m => (
             <button
-              key={m}
-              onClick={() => { setMode(m); setFiles([]) }}
-              className={`flex-1 py-3 rounded-xl border-2 font-semibold transition ${
-                mode === m ? 'border-brand-600 bg-brand-50 text-brand-600' : 'border-gray-200 text-gray-500'
+              key={m.id}
+              onClick={() => { setMode(m.id); setFiles([]) }}
+              className={`flex-1 py-3 px-2 rounded-xl border-2 transition text-center ${
+                mode === m.id
+                  ? 'border-brand-600 bg-brand-50 text-brand-700'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
               }`}
             >
-              {m === 'video' ? '🎥 Vídeo (recomendado)' : '📷 Fotos'}
+              <div className="text-xl mb-0.5">{m.emoji}</div>
+              <div className="font-semibold text-sm">{m.label}</div>
+              <div className="text-xs opacity-70">{m.sublabel}</div>
             </button>
           ))}
         </div>
 
         {/* Uploader */}
-        {mode === 'video'
-          ? <VideoUploader onFile={f => setFiles([f])} />
-          : <PhotoUploader onFiles={setFiles} />
-        }
+        {mode === 'ai_single' ? (
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setFiles(e.target.files ? [e.target.files[0]] : [])}
+              className="hidden"
+              id="ai-input"
+            />
+            <label htmlFor="ai-input" className="cursor-pointer">
+              {files.length > 0 ? (
+                <div>
+                  <p className="text-green-600 font-semibold">✓ {files[0].name}</p>
+                  <p className="text-gray-400 text-sm mt-1">Clica para mudar</p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-4xl mb-2">🖼️</p>
+                  <p className="font-semibold text-gray-700">Clica para escolher 1 foto</p>
+                  <p className="text-gray-400 text-sm mt-1">JPG, PNG ou WEBP</p>
+                </div>
+              )}
+            </label>
+          </div>
+        ) : mode === 'video' ? (
+          <VideoUploader onFile={f => setFiles([f])} />
+        ) : (
+          <PhotoUploader onFiles={setFiles} />
+        )}
 
         {/* Dicas */}
         <div className="bg-blue-50 rounded-xl p-4 mt-4 text-sm text-blue-800">
-          {mode === 'video' ? (
+          {mode === 'ai_single' ? (
+            <>
+              <strong>⚡ Modo IA — dicas para melhor resultado:</strong>
+              <ul className="mt-1 space-y-1 list-disc list-inside">
+                <li>Fotografa o produto de frente, ligeiramente acima</li>
+                <li>Fundo simples (branco ou cinzento) — o fundo é removido automaticamente</li>
+                <li>Boa iluminação, sem sombras duras</li>
+                <li>Produto centrado e a ocupar &gt;70% da foto</li>
+              </ul>
+            </>
+          ) : mode === 'video' ? (
             <>
               <strong>Dicas para um bom vídeo:</strong>
               <ul className="mt-1 space-y-1 list-disc list-inside">
                 <li>Filma 30-60 segundos a andar devagar à volta do produto</li>
                 <li>Usa boa iluminação (sem sombras fortes)</li>
                 <li>Mantém o produto no centro do ecrã</li>
-                <li>Produtos foscos resultam melhor (evita superfícies brilhantes)</li>
+                <li>Produtos foscos resultam melhor</li>
               </ul>
             </>
           ) : (
