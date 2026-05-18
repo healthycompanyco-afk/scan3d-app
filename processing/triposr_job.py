@@ -29,7 +29,7 @@ image = (
         "onnxruntime",
     )
     .run_commands(
-        "pip install git+https://github.com/VAST-AI-Research/TripoSR.git"
+        "git clone https://github.com/VAST-AI-Research/TripoSR.git /triposr",
     )
 )
 
@@ -107,6 +107,8 @@ def reconstruct_ai(model_id: str, user_id: str):
             img_clean = img_clean.resize((512, 512), Image.LANCZOS)
 
             # 3. Carregar e correr TripoSR
+            import sys
+            sys.path.insert(0, "/triposr")
             from tsr.system import TSR
 
             model = TSR.from_pretrained(
