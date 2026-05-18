@@ -14,6 +14,7 @@ image = (
     .env({"DEBIAN_FRONTEND": "noninteractive", "HF_HOME": "/model-cache"})
     .apt_install("libgl1", "libglib2.0-0", "git", "libgomp1")
     .pip_install(
+        "fastapi[standard]",
         "torch==2.1.2",
         "torchvision==0.16.2",
         "transformers>=4.35.0",
