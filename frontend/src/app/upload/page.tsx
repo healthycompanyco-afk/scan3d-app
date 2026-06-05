@@ -61,7 +61,7 @@ export default function UploadPage() {
   }
 
   const modes: { id: InputMode; emoji: string; label: string; sublabel: string }[] = [
-    { id: 'ai_single', emoji: '⚡', label: 'IA Rápida', sublabel: '1 foto · ~30 segundos' },
+    { id: 'ai_single', emoji: '✨', label: 'IA (recomendado)', sublabel: '1 foto · alta qualidade · ~1-2 min' },
     { id: 'video',     emoji: '🎥', label: 'Vídeo',    sublabel: 'melhor qualidade · ~20 min' },
     { id: 'photos',    emoji: '📷', label: 'Fotos',    sublabel: '30-80 fotos · ~20 min' },
   ]
@@ -142,12 +142,13 @@ export default function UploadPage() {
         <div className="bg-blue-50 rounded-xl p-4 mt-4 text-sm text-blue-800">
           {mode === 'ai_single' ? (
             <>
-              <strong>⚡ Modo IA — dicas para melhor resultado:</strong>
+              <strong>✨ Modo IA (TRELLIS) — dicas para melhor resultado:</strong>
               <ul className="mt-1 space-y-1 list-disc list-inside">
                 <li>Fotografa o produto de frente, ligeiramente acima</li>
-                <li>Fundo simples (branco ou cinzento) — o fundo é removido automaticamente</li>
+                <li>Fundo simples — o fundo é removido automaticamente</li>
                 <li>Boa iluminação, sem sombras duras</li>
                 <li>Produto centrado e a ocupar &gt;70% da foto</li>
+                <li>Gera malha 3D com textura real (qualidade de e-commerce)</li>
               </ul>
             </>
           ) : mode === 'video' ? (
