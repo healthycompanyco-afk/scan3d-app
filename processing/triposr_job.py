@@ -12,24 +12,31 @@ model_cache = modal.Volume.from_name("triposr-model-cache", create_if_missing=Tr
 image = (
     modal.Image.debian_slim(python_version="3.11")
     .env({"DEBIAN_FRONTEND": "noninteractive", "HF_HOME": "/model-cache"})
-    .apt_install("libgl1", "libglib2.0-0", "git", "libgomp1")
+    .apt_install("libgl1", "libglib2.0-0", "git", "libgomp1", "build-essential")
+    # 1. Torch primeiro (torchmcubes precisa dele instalado para compilar)
     .pip_install(
-        "fastapi[standard]",
         "torch==2.1.2",
         "torchvision==0.16.2",
-        "transformers>=4.35.0",
+    )
+    # 2. Restantes dependências
+    .pip_install(
+        "fastapi[standard]",
+        "transformers==4.35.0",
         "accelerate>=0.24.0",
         "huggingface_hub>=0.20.0",
-        "einops",
-        "omegaconf",
-        "trimesh[easy]==4.1.3",
+        "einops==0.7.0",
+        "omegaconf==2.3.0",
+        "trimesh==4.1.3",
         "pillow==10.2.0",
         "numpy==1.26.3",
         "supabase>=2.7.0,<3.0.0",
         "rembg==2.0.50",
         "onnxruntime",
+        "imageio[ffmpeg]",
     )
+    # 3. torchmcubes (marching cubes) — compila com o torch já instalado
     .run_commands(
+        "pip install --no-build-isolation git+https://github.com/tatsy/torchmcubes.git",
         "git clone https://github.com/VAST-AI-Research/TripoSR.git /triposr",
     )
 )
@@ -61,9 +68,17 @@ def reconstruct_ai_endpoint(body: dict):
 )
 def reconstruct_ai(model_id: str, user_id: str):
     """Gera modelo 3D a partir de 1 foto usando TripoSR."""
+    import sys
+    sys.path.insert(0, "/triposr")
+
     from supabase import create_client
     from PIL import Image
+    import numpy as np
     import torch
+    import rembg
+
+    from tsr.system import TSR
+    from tsr.utils import remove_background, resize_foreground
 
     sb = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_KEY"])
 
@@ -95,36 +110,31 @@ def reconstruct_ai(model_id: str, user_id: str):
             img_path = workdir / image_file["name"]
             img_path.write_bytes(data)
 
-            # 2. Remover fundo (melhora muito o resultado do TripoSR)
-            from rembg import remove
-            img_original = Image.open(img_path).convert("RGBA")
-            img_no_bg = remove(img_original)
-            # Fundo cinzento neutro (TripoSR prefere fundo uniforme)
-            img_clean = Image.new("RGBA", img_no_bg.size, (127, 127, 127, 255))
-            img_clean.paste(img_no_bg, mask=img_no_bg.split()[3])
-            img_clean = img_clean.convert("RGB")
+            # 2. Pré-processamento oficial TripoSR — remove fundo + recorta objeto
+            rembg_session = rembg.new_session()
+            image = Image.open(img_path)
+            image = remove_background(image, rembg_session)
+            image = resize_foreground(image, 0.85)
+            image = np.array(image).astype(np.float32) / 255.0
+            # Compor sobre fundo cinzento neutro (0.5) usando canal alfa
+            image = image[:, :, :3] * image[:, :, 3:4] + (1 - image[:, :, 3:4]) * 0.5
+            image = Image.fromarray((image * 255.0).astype(np.uint8))
 
-            # Redimensionar para 512x512 (tamanho de input do TripoSR)
-            img_clean = img_clean.resize((512, 512), Image.LANCZOS)
-
-            # 3. Carregar e correr TripoSR
-            import sys
-            sys.path.insert(0, "/triposr")
-            from tsr.system import TSR
-
+            # 3. Carregar modelo TripoSR (pesos em cache no volume)
             model = TSR.from_pretrained(
                 "stabilityai/TripoSR",
                 config_name="config.yaml",
                 weight_name="model.ckpt",
             )
-            model.renderer.set_chunk_size(131072)
+            model.renderer.set_chunk_size(8192)
             model.to("cuda")
 
+            # 4. Inferência → códigos da cena
             with torch.no_grad():
-                scene_codes = model([img_clean], device="cuda")
+                scene_codes = model([image], device="cuda")
 
-            # 4. Extrair malha 3D
-            meshes = model.extract_mesh(scene_codes, has_vertex_color=False)
+            # 5. Extrair malha 3D com cor nos vértices (resolução 256)
+            meshes = model.extract_mesh(scene_codes, True, resolution=256)
             mesh = meshes[0]
 
             glb_path = workdir / "model.glb"
@@ -133,7 +143,7 @@ def reconstruct_ai(model_id: str, user_id: str):
             if not glb_path.exists() or glb_path.stat().st_size < 1000:
                 raise ValueError("Ficheiro GLB gerado está vazio ou corrompido.")
 
-            # 5. Upload para Supabase Storage
+            # 6. Upload para Supabase Storage
             glb_storage = f"{user_id}/{model_id}/model.glb"
             sb.storage.from_("models").upload(
                 glb_storage, glb_path.read_bytes(),
