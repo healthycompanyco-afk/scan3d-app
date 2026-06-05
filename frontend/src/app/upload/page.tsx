@@ -19,7 +19,7 @@ export default function UploadPage() {
   async function handleSubmit() {
     if (!name.trim()) { setError('Dá um nome ao modelo.'); return }
     if (files.length === 0) { setError('Carrega pelo menos um ficheiro.'); return }
-    if (mode === 'ai_single' && files.length > 1) { setError('O modo IA usa apenas 1 foto.'); return }
+    if (mode === 'ai_single' && files.length > 6) { setError('O modo IA aceita no máximo 6 fotos.'); return }
 
     setUploading(true)
     setError('')
@@ -61,7 +61,7 @@ export default function UploadPage() {
   }
 
   const modes: { id: InputMode; emoji: string; label: string; sublabel: string }[] = [
-    { id: 'ai_single', emoji: '✨', label: 'IA (recomendado)', sublabel: '1 foto · alta qualidade · ~1-2 min' },
+    { id: 'ai_single', emoji: '✨', label: 'IA (recomendado)', sublabel: '1 a 6 fotos · alta qualidade · ~1-2 min' },
     { id: 'video',     emoji: '🎥', label: 'Vídeo',    sublabel: 'melhor qualidade · ~20 min' },
     { id: 'photos',    emoji: '📷', label: 'Fotos',    sublabel: '30-80 fotos · ~20 min' },
   ]
@@ -113,21 +113,24 @@ export default function UploadPage() {
             <input
               type="file"
               accept="image/*"
-              onChange={e => setFiles(e.target.files ? [e.target.files[0]] : [])}
+              multiple
+              onChange={e => setFiles(e.target.files ? Array.from(e.target.files).slice(0, 6) : [])}
               className="hidden"
               id="ai-input"
             />
             <label htmlFor="ai-input" className="cursor-pointer">
               {files.length > 0 ? (
                 <div>
-                  <p className="text-green-600 font-semibold">✓ {files[0].name}</p>
-                  <p className="text-gray-400 text-sm mt-1">Clica para mudar</p>
+                  <p className="text-green-600 font-semibold">
+                    ✓ {files.length === 1 ? files[0].name : `${files.length} fotos selecionadas`}
+                  </p>
+                  <p className="text-gray-400 text-sm mt-1">Clica para mudar a seleção</p>
                 </div>
               ) : (
                 <div>
                   <p className="text-4xl mb-2">🖼️</p>
-                  <p className="font-semibold text-gray-700">Clica para escolher 1 foto</p>
-                  <p className="text-gray-400 text-sm mt-1">JPG, PNG ou WEBP</p>
+                  <p className="font-semibold text-gray-700">Clica para escolher 1 a 6 fotos</p>
+                  <p className="text-gray-400 text-sm mt-1">Vários ângulos do mesmo produto · JPG, PNG ou WEBP</p>
                 </div>
               )}
             </label>
@@ -144,10 +147,11 @@ export default function UploadPage() {
             <>
               <strong>✨ Modo IA (TRELLIS) — dicas para melhor resultado:</strong>
               <ul className="mt-1 space-y-1 list-disc list-inside">
-                <li>Fotografa o produto de frente, ligeiramente acima</li>
+                <li><strong>1 foto</strong> chega, mas <strong>3-6 fotos</strong> de ângulos diferentes (frente, trás, lados) dão muito mais qualidade</li>
+                <li>Usa sempre o <strong>mesmo produto</strong> em todas as fotos</li>
                 <li>Fundo simples — o fundo é removido automaticamente</li>
                 <li>Boa iluminação, sem sombras duras</li>
-                <li>Produto centrado e a ocupar &gt;70% da foto</li>
+                <li>Produto centrado e a ocupar &gt;70% de cada foto</li>
                 <li>Gera malha 3D com textura real (qualidade de e-commerce)</li>
               </ul>
             </>

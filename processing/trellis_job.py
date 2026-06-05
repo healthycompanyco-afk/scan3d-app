@@ -137,20 +137,23 @@ def reconstruct_trellis(model_id: str, user_id: str):
         try:
             update_status("processing")
 
-            # 1. Descarregar imagem do Supabase Storage
+            # 1. Descarregar TODAS as imagens do Supabase Storage
             files = sb.storage.from_("uploads").list(f"{user_id}/{model_id}")
-            image_file = None
-            for f in files:
-                if f["name"].lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
-                    image_file = f
-                    break
-            if not image_file:
-                raise ValueError("Nenhuma imagem encontrada. Faz upload de uma foto.")
+            image_names = sorted(
+                f["name"] for f in files
+                if f["name"].lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
+            )
+            if not image_names:
+                raise ValueError("Nenhuma imagem encontrada. Faz upload de pelo menos uma foto.")
 
-            path = f"{user_id}/{model_id}/{image_file['name']}"
-            data = sb.storage.from_("uploads").download(path)
-            img_path = workdir / image_file["name"]
-            img_path.write_bytes(data)
+            # Limitar a 6 imagens (retorno reduzido acima disso, e poupa memória)
+            image_names = image_names[:6]
+            images = []
+            for name in image_names:
+                data = sb.storage.from_("uploads").download(f"{user_id}/{model_id}/{name}")
+                img_path = workdir / name
+                img_path.write_bytes(data)
+                images.append(Image.open(img_path))
 
             # 2. Carregar pipeline TRELLIS (image-to-3D)
             from trellis.pipelines import TrellisImageTo3DPipeline
@@ -159,13 +162,21 @@ def reconstruct_trellis(model_id: str, user_id: str):
             pipeline = TrellisImageTo3DPipeline.from_pretrained("microsoft/TRELLIS-image-large")
             pipeline.cuda()
 
-            # 3. Correr inferência (o pipeline remove o fundo automaticamente)
-            image = Image.open(img_path)
-            outputs = pipeline.run(
-                image,
-                seed=1,
-                formats=["gaussian", "mesh"],
-            )
+            # 3. Inferência — 1 foto usa run(), várias fotos usam run_multi_image()
+            #    (o pipeline remove o fundo automaticamente)
+            if len(images) == 1:
+                outputs = pipeline.run(
+                    images[0],
+                    seed=1,
+                    formats=["gaussian", "mesh"],
+                )
+            else:
+                outputs = pipeline.run_multi_image(
+                    images,
+                    seed=1,
+                    formats=["gaussian", "mesh"],
+                    mode="stochastic",  # combina as várias vistas
+                )
 
             # 4. Exportar GLB com textura
             glb = postprocessing_utils.to_glb(
