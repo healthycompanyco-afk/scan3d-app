@@ -66,6 +66,11 @@ image = (
     .pip_install("ninja", "scikit-build-core", "pybind11", "cmake==3.31.6", "wheel", "setuptools")
     # 4. spconv (convoluções esparsas) — wheel pré-compilada para CUDA 12.0+
     .pip_install("spconv-cu120")
+    # 4b. kaolin (biblioteca 3D da NVIDIA) — wheel pré-compilado para torch 2.4 / cu121
+    .pip_install(
+        "kaolin==0.17.0",
+        find_links="https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.4.0_cu121.html",
+    )
     # 5. Extensões CUDA compiladas a partir do git
     .pip_install("utils3d @ git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8")
     .run_commands(
