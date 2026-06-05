@@ -57,9 +57,8 @@ image = (
         "pyvista",
         "pymeshfix",
         "igraph",
-        "open3d==0.18.0",   # exigido pelo __init__ do pipeline TRELLIS (texto-para-3D)
+        "open3d==0.19.0",   # 0.19 suporta numpy 2.x (kaolin/nvdiffrast compilam contra numpy 2)
         "transformers==4.44.2",
-        "numpy<2",
         "supabase>=2.7.0,<3.0.0",
     )
     # 3. Ferramentas de build para as extensões CUDA
