@@ -19,6 +19,9 @@ image = (
         "HF_HOME": "/model-cache",
         "CUDA_HOME": "/usr/local/cuda",
         "TORCH_CUDA_ARCH_LIST": "7.5",  # T4 = compute capability 7.5
+        # O Python desta imagem define CXX=clang++ (não instalado) → forçar g++/gcc
+        "CC": "gcc",
+        "CXX": "g++",
     })
     .apt_install("libgl1", "libglib2.0-0", "git", "libgomp1", "build-essential")
     # 1. Torch primeiro (torchmcubes precisa dele instalado para compilar)
