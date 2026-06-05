@@ -57,6 +57,7 @@ image = (
         "pyvista",
         "pymeshfix",
         "igraph",
+        "open3d==0.18.0",   # exigido pelo __init__ do pipeline TRELLIS (texto-para-3D)
         "transformers==4.44.2",
         "numpy<2",
         "supabase>=2.7.0,<3.0.0",
