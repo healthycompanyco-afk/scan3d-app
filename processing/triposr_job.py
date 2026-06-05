@@ -33,7 +33,9 @@ image = (
     .pip_install(
         "fastapi[standard]",
         "transformers==4.35.0",
-        "accelerate>=0.24.0",
+        "huggingface_hub==0.17.3",  # compatível com transformers 4.35 (não usar 0.36)
+        "tokenizers==0.14.1",
+        "accelerate==0.25.0",
         "einops==0.7.0",
         "omegaconf==2.3.0",
         "trimesh==4.1.3",
