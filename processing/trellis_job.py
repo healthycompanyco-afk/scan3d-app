@@ -57,7 +57,7 @@ image = (
         "pyvista",
         "pymeshfix",
         "igraph",
-        "open3d==0.19.0",   # 0.19 suporta numpy 2.x (kaolin/nvdiffrast compilam contra numpy 2)
+        "open3d==0.19.0",   # 0.19 funciona com numpy 1.x e 2.x
         "transformers==4.44.2",
         "supabase>=2.7.0,<3.0.0",
     )
@@ -72,6 +72,8 @@ image = (
     )
     # 5. Extensões CUDA compiladas a partir do git
     .pip_install("utils3d @ git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8")
+    # 5b. Forçar numpy 1.x FINAL — o kaolin exige numpy<2 e o utils3d subiu-o para 2.x
+    .pip_install("numpy==1.26.4")
     .run_commands(
         # nvdiffrast (rasterização diferenciável)
         "pip install --no-build-isolation git+https://github.com/NVlabs/nvdiffrast.git",
