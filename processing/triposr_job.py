@@ -41,8 +41,8 @@ image = (
         "onnxruntime",
         "imageio[ffmpeg]",
     )
-    # 3. Ferramentas de build do torchmcubes (usa scikit-build-core + cmake)
-    .pip_install("scikit-build-core", "pybind11", "cmake", "ninja")
+    # 3. Ferramentas de build do torchmcubes (CMake 4.x rejeita o CMakeLists → fixar 3.x)
+    .pip_install("scikit-build-core", "pybind11", "cmake==3.31.6", "ninja")
     # 4. torchmcubes (marching cubes) — compila com o torch já instalado
     .run_commands(
         "pip install --no-build-isolation git+https://github.com/tatsy/torchmcubes.git",
