@@ -10,8 +10,16 @@ from pathlib import Path
 model_cache = modal.Volume.from_name("triposr-model-cache", create_if_missing=True)
 
 image = (
-    modal.Image.debian_slim(python_version="3.11")
-    .env({"DEBIAN_FRONTEND": "noninteractive", "HF_HOME": "/model-cache"})
+    # Imagem CUDA devel — inclui nvcc, necessário para compilar o torchmcubes
+    modal.Image.from_registry(
+        "nvidia/cuda:12.1.1-devel-ubuntu22.04", add_python="3.11"
+    )
+    .env({
+        "DEBIAN_FRONTEND": "noninteractive",
+        "HF_HOME": "/model-cache",
+        "CUDA_HOME": "/usr/local/cuda",
+        "TORCH_CUDA_ARCH_LIST": "7.5",  # T4 = compute capability 7.5
+    })
     .apt_install("libgl1", "libglib2.0-0", "git", "libgomp1", "build-essential")
     # 1. Torch primeiro (torchmcubes precisa dele instalado para compilar)
     .pip_install(
