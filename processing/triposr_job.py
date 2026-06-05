@@ -23,7 +23,6 @@ image = (
         "fastapi[standard]",
         "transformers==4.35.0",
         "accelerate>=0.24.0",
-        "huggingface_hub>=0.20.0",
         "einops==0.7.0",
         "omegaconf==2.3.0",
         "trimesh==4.1.3",
