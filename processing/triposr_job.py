@@ -33,7 +33,9 @@ image = (
         "onnxruntime",
         "imageio[ffmpeg]",
     )
-    # 3. torchmcubes (marching cubes) — compila com o torch já instalado
+    # 3. Ferramentas de build do torchmcubes (usa scikit-build-core + cmake)
+    .pip_install("scikit-build-core", "pybind11", "cmake", "ninja")
+    # 4. torchmcubes (marching cubes) — compila com o torch já instalado
     .run_commands(
         "pip install --no-build-isolation git+https://github.com/tatsy/torchmcubes.git",
         "git clone https://github.com/VAST-AI-Research/TripoSR.git /triposr",
