@@ -69,12 +69,12 @@ image = (
     .pip_install("utils3d @ git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8")
     .run_commands(
         # nvdiffrast (rasterização diferenciável)
-        "pip install git+https://github.com/NVlabs/nvdiffrast.git",
+        "pip install --no-build-isolation git+https://github.com/NVlabs/nvdiffrast.git",
         # diffoctreerast (octree rasterizer do TRELLIS)
-        "pip install git+https://github.com/JeffreyXiang/diffoctreerast.git",
+        "pip install --no-build-isolation git+https://github.com/JeffreyXiang/diffoctreerast.git",
         # Rasterizador de Gaussianas (variante mip do TRELLIS)
         "git clone --recurse-submodules https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting",
-        "pip install /tmp/mip-splatting/submodules/diff-gaussian-rasterization/",
+        "pip install --no-build-isolation /tmp/mip-splatting/submodules/diff-gaussian-rasterization/",
         # Código do TRELLIS
         "git clone --recurse-submodules https://github.com/microsoft/TRELLIS.git /trellis",
         gpu="T4",  # compilar com GPU disponível para extensões que verificam CUDA runtime
