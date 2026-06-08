@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import ModelViewer from '@/components/ModelViewer'
+import SplatViewer from '@/components/SplatViewer'
 import StatusBadge from '@/components/StatusBadge'
 
 type Model = {
@@ -11,6 +12,7 @@ type Model = {
   status: string
   model_url: string | null
   obj_url: string | null
+  splat_url: string | null
   input_type: string
   frames_count: number
   created_at: string
@@ -20,6 +22,7 @@ type Model = {
 export default function ModelPage({ params }: { params: { id: string } }) {
   const [model, setModel] = useState<Model | null>(null)
   const [toggling, setToggling] = useState(false)
+  const [viewMode, setViewMode] = useState<'splat' | 'mesh'>('splat')
   const supabase = createClientComponentClient()
 
   const load = useCallback(async () => {
@@ -72,10 +75,34 @@ export default function ModelPage({ params }: { params: { id: string } }) {
           )}
         </div>
 
+        {/* Toggle de modo de visualização (só se houver splat) */}
+        {model.status === 'done' && model.model_url && model.splat_url && (
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setViewMode('splat')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
+                viewMode === 'splat' ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
+              }`}
+            >
+              ✨ Realista
+            </button>
+            <button
+              onClick={() => setViewMode('mesh')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
+                viewMode === 'mesh' ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
+              }`}
+            >
+              🔷 Malha
+            </button>
+          </div>
+        )}
+
         {/* Visualizador 3D */}
         {model.status === 'done' && model.model_url ? (
           <div className="bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '600px' }}>
-            <ModelViewer url={model.model_url} />
+            {model.splat_url && viewMode === 'splat'
+              ? <SplatViewer url={model.splat_url} />
+              : <ModelViewer url={model.model_url} />}
           </div>
         ) : (
           <div className="bg-gray-800 rounded-2xl flex flex-col items-center justify-center" style={{ height: '600px' }}>

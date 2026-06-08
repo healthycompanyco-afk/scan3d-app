@@ -2,16 +2,18 @@
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import ModelViewer from '@/components/ModelViewer'
+import SplatViewer from '@/components/SplatViewer'
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
   const [modelUrl, setModelUrl] = useState<string | null>(null)
+  const [splatUrl, setSplatUrl] = useState<string | null>(null)
   const [error, setError] = useState(false)
   const supabase = createClientComponentClient()
 
   useEffect(() => {
     supabase
       .from('models')
-      .select('model_url, status, is_public')
+      .select('model_url, splat_url, status, is_public')
       .eq('id', params.id)
       .single()
       .then(({ data }) => {
@@ -20,6 +22,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
           return
         }
         setModelUrl(data.model_url)
+        setSplatUrl(data.splat_url)
       })
   }, [params.id, supabase])
 
@@ -42,7 +45,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
 
   return (
     <div style={{ width: '100%', height: '100vh', background: '#111', position: 'relative' }}>
-      <ModelViewer url={modelUrl} />
+      {splatUrl ? <SplatViewer url={splatUrl} /> : <ModelViewer url={modelUrl} />}
       {/* Branding discreto */}
       <a
         href="/"

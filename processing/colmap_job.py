@@ -131,30 +131,16 @@ def reconstruct(model_id: str, user_id: str, input_type: str):
                 "--output_path", str(sparse_dir),
             ], check=True, capture_output=True)
 
-            # 5. COLMAP — Dense reconstruction
-            dense_dir = colmap_dir / "dense"
-            dense_dir.mkdir()
+            # 5. COLMAP — Exportar nuvem de pontos esparsa (sem CUDA)
             subprocess.run([
-                "colmap", "image_undistorter",
-                "--image_path", str(frames_dir),
+                "colmap", "model_converter",
                 "--input_path", str(sparse_dir / "0"),
-                "--output_path", str(dense_dir),
-            ], check=True, capture_output=True)
-
-            subprocess.run([
-                "colmap", "patch_match_stereo",
-                "--workspace_path", str(dense_dir),
-                "--PatchMatchStereo.gpu_index", "0",
-            ], check=True, capture_output=True)
-
-            subprocess.run([
-                "colmap", "stereo_fusion",
-                "--workspace_path", str(dense_dir),
-                "--output_path", str(output_dir / "fused.ply"),
+                "--output_path", str(output_dir / "sparse.ply"),
+                "--output_type", "PLY",
             ], check=True, capture_output=True)
 
             # 6. Open3D — Nuvem de pontos → malha 3D
-            pcd = o3d.io.read_point_cloud(str(output_dir / "fused.ply"))
+            pcd = o3d.io.read_point_cloud(str(output_dir / "sparse.ply"))
             pcd.estimate_normals()
             pcd.orient_normals_consistent_tangent_plane(30)
             mesh, _ = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=9)

@@ -198,17 +198,31 @@ def reconstruct_trellis(model_id: str, user_id: str):
             if not glb_path.exists() or glb_path.stat().st_size < 1000:
                 raise ValueError("Ficheiro GLB gerado está vazio ou corrompido.")
 
-            # 5. Upload para Supabase Storage
+            # 4b. Exportar Gaussian Splat (.ply) — preserva cores reais e brilho
+            splat_path = workdir / "model.ply"
+            outputs["gaussian"][0].save_ply(str(splat_path))
+
+            # 5. Upload para Supabase Storage (GLB + splat)
             glb_storage = f"{user_id}/{model_id}/model.glb"
             sb.storage.from_("models").upload(
                 glb_storage, glb_path.read_bytes(),
                 {"content-type": "model/gltf-binary", "upsert": "true"}
             )
 
-            sb.table("models").update({
+            update_data = {
                 "status": "done",
                 "model_url": sb.storage.from_("models").get_public_url(glb_storage),
-            }).eq("id", model_id).execute()
+            }
+
+            if splat_path.exists() and splat_path.stat().st_size > 1000:
+                splat_storage = f"{user_id}/{model_id}/model.ply"
+                sb.storage.from_("models").upload(
+                    splat_storage, splat_path.read_bytes(),
+                    {"content-type": "application/octet-stream", "upsert": "true"}
+                )
+                update_data["splat_url"] = sb.storage.from_("models").get_public_url(splat_storage)
+
+            sb.table("models").update(update_data).eq("id", model_id).execute()
 
         except Exception as e:
             update_status("error", str(e))
