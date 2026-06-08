@@ -22,7 +22,6 @@ type Model = {
 export default function ModelPage({ params }: { params: { id: string } }) {
   const [model, setModel] = useState<Model | null>(null)
   const [toggling, setToggling] = useState(false)
-  const [viewMode, setViewMode] = useState<'splat' | 'mesh'>('splat')
   const supabase = createClientComponentClient()
 
   const load = useCallback(async () => {
@@ -75,35 +74,30 @@ export default function ModelPage({ params }: { params: { id: string } }) {
           )}
         </div>
 
-        {/* Toggle de modo de visualização (só se houver splat) */}
-        {model.status === 'done' && model.model_url && model.splat_url && (
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => setViewMode('splat')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
-                viewMode === 'splat' ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
-              }`}
-            >
-              ✨ Realista
-            </button>
-            <button
-              onClick={() => setViewMode('mesh')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
-                viewMode === 'mesh' ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
-              }`}
-            >
-              🔷 Malha
-            </button>
-          </div>
-        )}
-
-        {/* Visualizador 3D */}
+        {/* Visualizadores 3D */}
         {model.status === 'done' && model.model_url ? (
-          <div className="bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '600px' }}>
-            {model.splat_url && viewMode === 'splat'
-              ? <SplatViewer url={model.splat_url} />
-              : <ModelViewer url={model.model_url} />}
-          </div>
+          model.splat_url ? (
+            // Dois visualizadores lado a lado: Realista (splat) + Malha (GLB)
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-300 mb-2">✨ Realista (cores + brilho reais)</p>
+                <div className="bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '500px' }}>
+                  <SplatViewer url={model.splat_url} />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-300 mb-2">🔷 Malha (para download / AR)</p>
+                <div className="bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '500px' }}>
+                  <ModelViewer url={model.model_url} />
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Só malha (modelos antigos ou sem splat)
+            <div className="bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '600px' }}>
+              <ModelViewer url={model.model_url} />
+            </div>
+          )
         ) : (
           <div className="bg-gray-800 rounded-2xl flex flex-col items-center justify-center" style={{ height: '600px' }}>
             {model.status === 'error' ? (
