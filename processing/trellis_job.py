@@ -164,11 +164,17 @@ def reconstruct_trellis(model_id: str, user_id: str):
 
             # 3. Inferência — 1 foto usa run(), várias fotos usam run_multi_image()
             #    (o pipeline remove o fundo automaticamente)
+            # Boost de qualidade: mais passos de amostragem que os 12 por defeito.
+            quality_params = {
+                "sparse_structure_sampler_params": {"steps": 20, "cfg_strength": 7.5},
+                "slat_sampler_params": {"steps": 20, "cfg_strength": 3.0},
+            }
             if len(images) == 1:
                 outputs = pipeline.run(
                     images[0],
                     seed=1,
                     formats=["gaussian", "mesh"],
+                    **quality_params,
                 )
             else:
                 outputs = pipeline.run_multi_image(
@@ -176,14 +182,15 @@ def reconstruct_trellis(model_id: str, user_id: str):
                     seed=1,
                     formats=["gaussian", "mesh"],
                     mode="stochastic",  # combina as várias vistas
+                    **quality_params,
                 )
 
-            # 4. Exportar GLB com textura
+            # 4. Exportar GLB com textura (textura mais nítida: 2048px)
             glb = postprocessing_utils.to_glb(
                 outputs["gaussian"][0],
                 outputs["mesh"][0],
                 simplify=0.95,        # reduzir polígonos (mais leve para o browser)
-                texture_size=1024,    # resolução da textura
+                texture_size=2048,    # resolução da textura (era 1024)
             )
             glb_path = workdir / "model.glb"
             glb.export(str(glb_path))
