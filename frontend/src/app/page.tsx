@@ -19,10 +19,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-6 sm:px-8 pt-20 pb-16 text-center">
-        <span className="inline-block bg-brand-50 text-brand-700 text-xs font-semibold px-3 py-1 rounded-full mb-6">
-          ✨ Powered by IA generativa (TRELLIS)
-        </span>
-        <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+        <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6 leading-tight pt-6">
           Transforma fotos em<br />
           <span className="text-brand-600">modelos 3D fotorrealistas</span>
         </h1>
