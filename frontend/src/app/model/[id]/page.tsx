@@ -13,6 +13,7 @@ type Model = {
   model_url: string | null
   obj_url: string | null
   splat_url: string | null
+  stl_url: string | null
   input_type: string
   frames_count: number
   created_at: string
@@ -68,6 +69,15 @@ export default function ModelPage({ params }: { params: { id: string } }) {
                   className="border border-gray-600 text-gray-300 px-4 py-2 rounded-lg text-sm hover:border-gray-400"
                 >
                   Download .obj
+                </a>
+              )}
+              {model.stl_url && (
+                <a
+                  href={model.stl_url}
+                  download
+                  className="border border-gray-600 text-gray-300 px-4 py-2 rounded-lg text-sm hover:border-gray-400"
+                >
+                  Download .stl (impressão 3D)
                 </a>
               )}
             </div>

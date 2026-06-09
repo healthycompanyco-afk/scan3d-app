@@ -202,6 +202,13 @@ def reconstruct_trellis(model_id: str, user_id: str):
             splat_path = workdir / "model.ply"
             outputs["gaussian"][0].save_ply(str(splat_path))
 
+            # 4c. Exportar STL — geometria pronta para impressão 3D (sem textura)
+            stl_path = workdir / "model.stl"
+            try:
+                glb.export(str(stl_path), file_type="stl")
+            except Exception:
+                stl_path = None  # se falhar, segue sem STL
+
             # 5. Upload para Supabase Storage (GLB + splat)
             glb_storage = f"{user_id}/{model_id}/model.glb"
             sb.storage.from_("models").upload(
@@ -221,6 +228,14 @@ def reconstruct_trellis(model_id: str, user_id: str):
                     {"content-type": "application/octet-stream", "upsert": "true"}
                 )
                 update_data["splat_url"] = sb.storage.from_("models").get_public_url(splat_storage)
+
+            if stl_path and stl_path.exists() and stl_path.stat().st_size > 1000:
+                stl_storage = f"{user_id}/{model_id}/model.stl"
+                sb.storage.from_("models").upload(
+                    stl_storage, stl_path.read_bytes(),
+                    {"content-type": "model/stl", "upsert": "true"}
+                )
+                update_data["stl_url"] = sb.storage.from_("models").get_public_url(stl_storage)
 
             sb.table("models").update(update_data).eq("id", model_id).execute()
 
