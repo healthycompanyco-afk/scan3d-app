@@ -2,13 +2,9 @@
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
-import PhotoUploader from '@/components/PhotoUploader'
-import VideoUploader from '@/components/VideoUploader'
-
-type InputMode = 'ai_single' | 'video' | 'photos'
+import PhotoGuide from '@/components/PhotoGuide'
 
 export default function UploadPage() {
-  const [mode, setMode] = useState<InputMode>('ai_single')
   const [name, setName] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
@@ -16,10 +12,15 @@ export default function UploadPage() {
   const supabase = createClientComponentClient()
   const router = useRouter()
 
+  function onPick(selected: FileList | null) {
+    if (!selected) return
+    setFiles(Array.from(selected).slice(0, 6))
+  }
+
   async function handleSubmit() {
-    if (!name.trim()) { setError('Dá um nome ao modelo.'); return }
-    if (files.length === 0) { setError('Carrega pelo menos um ficheiro.'); return }
-    if (mode === 'ai_single' && files.length > 6) { setError('O modo IA aceita no máximo 6 fotos.'); return }
+    if (!name.trim()) { setError('Dá um nome ao produto.'); return }
+    if (files.length === 0) { setError('Carrega pelo menos 1 foto.'); return }
+    if (files.length > 6) { setError('Máximo 6 fotos.'); return }
 
     setUploading(true)
     setError('')
@@ -30,7 +31,7 @@ export default function UploadPage() {
 
       const { data: model, error: dbError } = await supabase
         .from('models')
-        .insert({ user_id: user.id, name, input_type: mode, status: 'pending' })
+        .insert({ user_id: user.id, name, input_type: 'ai_single', status: 'pending' })
         .select()
         .single()
 
@@ -45,7 +46,7 @@ export default function UploadPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reconstruct`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model_id: model.id, user_id: user.id, input_type: mode }),
+        body: JSON.stringify({ model_id: model.id, user_id: user.id, input_type: 'ai_single' }),
       })
 
       if (!res.ok) {
@@ -60,12 +61,6 @@ export default function UploadPage() {
     }
   }
 
-  const modes: { id: InputMode; emoji: string; label: string; sublabel: string }[] = [
-    { id: 'ai_single', emoji: '✨', label: 'IA (recomendado)', sublabel: '1 a 6 fotos · alta qualidade · ~1-2 min' },
-    { id: 'video',     emoji: '🎥', label: 'Vídeo',    sublabel: 'melhor qualidade · ~20 min' },
-    { id: 'photos',    emoji: '📷', label: 'Fotos',    sublabel: '30-80 fotos · ~20 min' },
-  ]
-
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b px-8 py-4">
@@ -74,7 +69,12 @@ export default function UploadPage() {
 
       <div className="max-w-2xl mx-auto px-8 py-10">
         <h1 className="text-2xl font-bold mb-2">Novo modelo 3D</h1>
-        <p className="text-gray-500 text-sm mb-8">Escolhe como queres capturar o produto.</p>
+        <p className="text-gray-500 text-sm mb-8">
+          Carrega 4 a 6 fotos do teu produto e a nossa IA gera um modelo 3D fotorrealista.
+        </p>
+
+        {/* Guia de fotos */}
+        <PhotoGuide />
 
         {/* Nome */}
         <div className="mb-6">
@@ -88,95 +88,55 @@ export default function UploadPage() {
           />
         </div>
 
-        {/* Modo */}
-        <div className="flex gap-3 mb-6">
-          {modes.map(m => (
-            <button
-              key={m.id}
-              onClick={() => { setMode(m.id); setFiles([]) }}
-              className={`flex-1 py-3 px-2 rounded-xl border-2 transition text-center ${
-                mode === m.id
-                  ? 'border-brand-600 bg-brand-50 text-brand-700'
-                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-xl mb-0.5">{m.emoji}</div>
-              <div className="font-semibold text-sm">{m.label}</div>
-              <div className="text-xs opacity-70">{m.sublabel}</div>
-            </button>
-          ))}
+        {/* Uploader de fotos */}
+        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white">
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={e => onPick(e.target.files)}
+            className="hidden"
+            id="photo-input"
+          />
+          <label htmlFor="photo-input" className="cursor-pointer">
+            {files.length > 0 ? (
+              <div>
+                <p className="text-green-600 font-semibold">
+                  ✓ {files.length} {files.length === 1 ? 'foto selecionada' : 'fotos selecionadas'}
+                </p>
+                <p className="text-gray-400 text-sm mt-1">Clica para mudar a seleção</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-4xl mb-2">🖼️</p>
+                <p className="font-semibold text-gray-700">Clica para escolher 4 a 6 fotos</p>
+                <p className="text-gray-400 text-sm mt-1">Vários ângulos do mesmo produto · JPG, PNG ou WEBP</p>
+              </div>
+            )}
+          </label>
         </div>
 
-        {/* Uploader */}
-        {mode === 'ai_single' ? (
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={e => setFiles(e.target.files ? Array.from(e.target.files).slice(0, 6) : [])}
-              className="hidden"
-              id="ai-input"
-            />
-            <label htmlFor="ai-input" className="cursor-pointer">
-              {files.length > 0 ? (
-                <div>
-                  <p className="text-green-600 font-semibold">
-                    ✓ {files.length === 1 ? files[0].name : `${files.length} fotos selecionadas`}
-                  </p>
-                  <p className="text-gray-400 text-sm mt-1">Clica para mudar a seleção</p>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-4xl mb-2">🖼️</p>
-                  <p className="font-semibold text-gray-700">Clica para escolher 1 a 6 fotos</p>
-                  <p className="text-gray-400 text-sm mt-1">Vários ângulos do mesmo produto · JPG, PNG ou WEBP</p>
-                </div>
-              )}
-            </label>
+        {/* Pré-visualização das fotos escolhidas */}
+        {files.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {files.map((f, i) => (
+              <div key={i} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={URL.createObjectURL(f)}
+                  alt={`foto ${i + 1}`}
+                  className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                />
+              </div>
+            ))}
           </div>
-        ) : mode === 'video' ? (
-          <VideoUploader onFile={f => setFiles([f])} />
-        ) : (
-          <PhotoUploader onFiles={setFiles} />
         )}
 
-        {/* Dicas */}
-        <div className="bg-blue-50 rounded-xl p-4 mt-4 text-sm text-blue-800">
-          {mode === 'ai_single' ? (
-            <>
-              <strong>✨ Modo IA (TRELLIS) — dicas para melhor resultado:</strong>
-              <ul className="mt-1 space-y-1 list-disc list-inside">
-                <li><strong>1 foto</strong> chega, mas <strong>3-6 fotos</strong> de ângulos diferentes (frente, trás, lados) dão muito mais qualidade</li>
-                <li>Usa sempre o <strong>mesmo produto</strong> em todas as fotos</li>
-                <li>Fundo simples — o fundo é removido automaticamente</li>
-                <li>Boa iluminação, sem sombras duras</li>
-                <li>Produto centrado e a ocupar &gt;70% de cada foto</li>
-                <li>Gera malha 3D com textura real (qualidade de e-commerce)</li>
-              </ul>
-            </>
-          ) : mode === 'video' ? (
-            <>
-              <strong>Dicas para um bom vídeo:</strong>
-              <ul className="mt-1 space-y-1 list-disc list-inside">
-                <li>Filma 30-60 segundos a andar devagar à volta do produto</li>
-                <li>Usa boa iluminação (sem sombras fortes)</li>
-                <li>Mantém o produto no centro do ecrã</li>
-                <li>Produtos foscos resultam melhor</li>
-              </ul>
-            </>
-          ) : (
-            <>
-              <strong>Dicas para boas fotos:</strong>
-              <ul className="mt-1 space-y-1 list-disc list-inside">
-                <li>Mínimo 30 fotos, idealmente 50-80</li>
-                <li>Cobre todos os ângulos: frente, trás, cima, baixo, lados</li>
-                <li>Cada foto deve ter 60-80% de sobreposição com a anterior</li>
-                <li>Fundo simples (branco ou cinzento)</li>
-              </ul>
-            </>
-          )}
-        </div>
+        {files.length === 1 && (
+          <p className="text-amber-600 text-sm mt-3">
+            💡 Só 1 foto funciona, mas com 4-6 fotos de ângulos diferentes o modelo fica muito melhor.
+          </p>
+        )}
 
         {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
 
