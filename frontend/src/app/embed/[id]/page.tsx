@@ -53,7 +53,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
         rel="noopener"
         style={{ position: 'absolute', bottom: 8, right: 12, fontSize: 11, color: '#555', textDecoration: 'none' }}
       >
-        Scan3D
+Snap3D
       </a>
     </div>
   )

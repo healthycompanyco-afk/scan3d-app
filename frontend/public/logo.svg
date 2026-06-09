@@ -1,0 +1,14 @@
+<svg width="240" height="64" viewBox="0 0 240 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Símbolo: cubo isométrico com abertura de lente -->
+  <g>
+    <path d="M32 33 L54 21 L54 43 L32 55 Z" fill="#0a0a0a"/>
+    <path d="M32 33 L10 21 L10 43 L32 55 Z" fill="#6b7280"/>
+    <path d="M32 11 L54 21 L32 33 L10 21 Z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M32 33 L54 21 L54 43 L32 55 L10 43 L10 21 Z" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+    <path d="M32 33 L32 55" stroke="#0a0a0a" stroke-width="1.5"/>
+    <ellipse cx="32" cy="21" rx="6.5" ry="3.6" fill="none" stroke="#0a0a0a" stroke-width="1.4"/>
+    <circle cx="32" cy="21" r="1.4" fill="#0a0a0a"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="74" y="42" font-family="'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" fill="#0a0a0a">Snap<tspan fill="#8a8a8a">3D</tspan></text>
+</svg>

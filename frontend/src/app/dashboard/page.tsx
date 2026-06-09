@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import ModelCard from '@/components/ModelCard'
 import UsageBar from '@/components/UsageBar'
+import Logo from '@/components/Logo'
 
 type Model = {
   id: string
@@ -61,7 +62,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b px-8 py-4 flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold text-brand-600">Scan3D</Link>
+        <Link href="/"><Logo height={32} /></Link>
         <div className="flex gap-4 items-center">
           <Link href="/pricing" className="text-sm text-gray-600 hover:text-gray-900">Planos</Link>
           <Link href="/upload" className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-brand-500">

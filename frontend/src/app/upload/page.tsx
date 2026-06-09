@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import PhotoGuide from '@/components/PhotoGuide'
+import Logo from '@/components/Logo'
 
 export default function UploadPage() {
   const [name, setName] = useState('')
@@ -64,7 +65,7 @@ export default function UploadPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b px-8 py-4">
-        <span className="text-xl font-bold text-brand-600">Scan3D</span>
+        <Logo height={32} />
       </nav>
 
       <div className="max-w-2xl mx-auto px-8 py-10">

@@ -5,8 +5,9 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Scan3D — Modelos 3D para E-commerce',
-  description: 'Filma o teu produto 30 segundos. Tens um modelo 3D pronto para a tua loja em minutos.',
+  title: 'Snap3D — Modelos 3D para E-commerce',
+  description: 'Tira 4-6 fotos do teu produto. A nossa IA gera um modelo 3D fotorrealista pronto para a tua loja em minutos.',
+  icons: { icon: '/icon.svg' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 const plans = [
   {
@@ -55,7 +56,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b px-8 py-4 flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold text-brand-600">Scan3D</Link>
+        <Link href="/"><Logo height={32} /></Link>
         <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">Entrar</Link>
       </nav>
 

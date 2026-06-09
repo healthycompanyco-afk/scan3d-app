@@ -5,6 +5,7 @@ import Link from 'next/link'
 import ModelViewer from '@/components/ModelViewer'
 import SplatViewer from '@/components/SplatViewer'
 import StatusBadge from '@/components/StatusBadge'
+import Logo from '@/components/Logo'
 
 type Model = {
   id: string
@@ -46,7 +47,7 @@ export default function ModelPage({ params }: { params: { id: string } }) {
     <div className="min-h-screen bg-gray-900 text-white">
       <nav className="bg-gray-800 px-8 py-4 flex justify-between items-center">
         <Link href="/dashboard" className="text-brand-400 hover:text-brand-300">← Voltar ao dashboard</Link>
-        <span className="text-xl font-bold text-white">Scan3D</span>
+        <Logo variant="light" height={30} />
         <StatusBadge status={model.status} />
       </nav>
 

@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Snap3D — cubo isométrico (3D) com abertura de lente (snap), P&B premium -->
+  <!-- Face direita (mais escura) -->
+  <path d="M32 33 L54 21 L54 43 L32 55 Z" fill="#0a0a0a"/>
+  <!-- Face esquerda (cinza médio) -->
+  <path d="M32 33 L10 21 L10 43 L32 55 Z" fill="#6b7280"/>
+  <!-- Face de topo (clara) -->
+  <path d="M32 11 L54 21 L32 33 L10 21 Z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Arestas para definição -->
+  <path d="M32 33 L54 21 L54 43 L32 55 L10 43 L10 21 Z" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+  <path d="M32 33 L32 55" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Abertura de lente no topo (evoca "Snap") -->
+  <ellipse cx="32" cy="21" rx="6.5" ry="3.6" fill="none" stroke="#0a0a0a" stroke-width="1.4"/>
+  <circle cx="32" cy="21" r="1.4" fill="#0a0a0a"/>
+</svg>

@@ -1,11 +1,12 @@
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-white">
       {/* Navbar */}
       <nav className="flex items-center justify-between px-8 py-4 border-b">
-        <span className="text-xl font-bold text-brand-600">Scan3D</span>
+        <Logo height={32} />
         <div className="flex gap-4">
           <Link href="/pricing" className="text-gray-600 hover:text-gray-900">Preços</Link>
           <Link href="/login" className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-500">
