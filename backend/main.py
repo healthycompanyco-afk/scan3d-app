@@ -9,6 +9,7 @@ from supabase_utils import get_supabase
 from plans import check_plan_limit, increment_model_count, get_plan
 from modal_runner import trigger_reconstruction
 from stripe_webhook import handle_stripe_webhook
+from stripe_checkout import create_checkout_session, create_portal_session
 
 load_dotenv()
 
@@ -30,6 +31,15 @@ class ReconstructRequest(BaseModel):
     model_id: str
     user_id: str
     input_type: str  # 'photos' | 'video'
+
+
+class CheckoutRequest(BaseModel):
+    user_id: str
+    plan: str  # 'creator' | 'pro'
+
+
+class PortalRequest(BaseModel):
+    user_id: str
 
 
 @app.get("/health")
@@ -87,6 +97,32 @@ async def get_status(model_id: str):
         raise
     except Exception as e:
         logger.error(f"Erro em /status: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/create-checkout-session")
+async def checkout(req: CheckoutRequest):
+    """Cria uma sessão de checkout do Stripe para subscrever um plano."""
+    try:
+        url = create_checkout_session(req.user_id, req.plan)
+        return {"url": url}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Erro em /create-checkout-session: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/create-portal-session")
+async def portal(req: PortalRequest):
+    """Cria uma sessão do portal de cliente Stripe (gerir/cancelar)."""
+    try:
+        url = create_portal_session(req.user_id)
+        return {"url": url}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Erro em /create-portal-session: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

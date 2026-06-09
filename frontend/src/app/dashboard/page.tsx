@@ -54,6 +54,20 @@ export default function DashboardPage() {
     setModels(prev => prev.filter(m => m.id !== id))
   }
 
+  async function manageSubscription() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/create-portal-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: user.id }),
+    })
+    if (res.ok) {
+      const { url } = await res.json()
+      window.location.href = url
+    }
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">A carregar...</div>
 
   const limit = PLAN_LIMITS[profile?.plan ?? 'free']
@@ -75,7 +89,16 @@ export default function DashboardPage() {
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Os meus modelos</h1>
-            <p className="text-gray-500 text-sm mt-1">Plano: <span className="font-semibold capitalize">{profile?.plan ?? 'free'}</span></p>
+            <p className="text-gray-500 text-sm mt-1">
+              Plano: <span className="font-semibold capitalize">{profile?.plan ?? 'free'}</span>
+              {(profile?.plan ?? 'free') === 'free' ? (
+                <Link href="/pricing" className="ml-3 text-brand-600 hover:underline font-medium">Fazer upgrade →</Link>
+              ) : (
+                <button onClick={manageSubscription} className="ml-3 text-brand-600 hover:underline font-medium">
+                  Gerir subscrição
+                </button>
+              )}
+            </p>
           </div>
           <UsageBar used={used} limit={limit} />
         </div>
