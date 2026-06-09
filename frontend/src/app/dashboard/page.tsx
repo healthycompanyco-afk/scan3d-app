@@ -37,13 +37,15 @@ export default function DashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
+      const nowIso = new Date().toISOString()
       const [{ data: profileData }, { data: modelsData }] = await Promise.all([
         supabase.from('user_profiles').select('plan, models_this_month').eq('id', user.id).single(),
         supabase.from('models').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ])
 
       setProfile(profileData)
-      setModels(modelsData ?? [])
+      // Esconde modelos já expirados (expires_at no passado)
+      setModels((modelsData ?? []).filter(m => !m.expires_at || m.expires_at > nowIso))
       setLoading(false)
     }
     load()

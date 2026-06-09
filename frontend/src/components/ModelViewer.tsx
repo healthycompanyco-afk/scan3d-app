@@ -1,7 +1,7 @@
 'use client'
 import { Suspense, Component, ReactNode } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei'
+import { OrbitControls, useGLTF, Environment, Center, Bounds, ContactShadows } from '@react-three/drei'
 
 function Model({ url }: { url: string }) {
   const { scene } = useGLTF(url)
@@ -38,16 +38,28 @@ export default function ModelViewer({ url }: { url: string }) {
         </div>
       }
     >
-      <Canvas camera={{ position: [0, 0, 3], fov: 50 }} style={{ width: '100%', height: '100%' }}>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
+      <Canvas camera={{ position: [0, 0.5, 3], fov: 45 }} style={{ width: '100%', height: '100%' }}>
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[5, 8, 5]} intensity={1.2} castShadow />
+        <directionalLight position={[-5, 3, -5]} intensity={0.4} />
         <Suspense fallback={null}>
-          <Center>
-            <Model url={url} />
-          </Center>
+          <Bounds fit clip observe margin={1.2}>
+            <Center>
+              <Model url={url} />
+            </Center>
+          </Bounds>
+          <ContactShadows position={[0, -1, 0]} opacity={0.35} scale={10} blur={2.5} far={4} />
           <Environment preset="studio" />
         </Suspense>
-        <OrbitControls autoRotate autoRotateSpeed={1} enableZoom enablePan />
+        <OrbitControls
+          makeDefault
+          autoRotate
+          autoRotateSpeed={1.2}
+          enableZoom
+          enablePan
+          minPolarAngle={0.2}
+          maxPolarAngle={Math.PI / 1.8}
+        />
       </Canvas>
     </ErrorBoundary>
   )

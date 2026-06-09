@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import logging
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 
 from supabase_utils import get_supabase
@@ -62,11 +63,19 @@ async def reconstruct(req: ReconstructRequest):
         plan = await get_plan(req.user_id)
         watermark = plan == "free"
 
+        # Data de expiração conforme o plano (Pro = nunca expira)
+        expiry_days = {"free": 30, "creator": 90}.get(plan)
+        expires_at = (
+            (datetime.now(timezone.utc) + timedelta(days=expiry_days)).isoformat()
+            if expiry_days else None
+        )
+
         # Atualizar estado para 'extracting' (vídeo) ou 'processing' (fotos)
         initial_status = "extracting" if req.input_type == "video" else "processing"
         sb.table("models").update({
             "status": initial_status,
             "watermark": watermark,
+            "expires_at": expires_at,
         }).eq("id", req.model_id).execute()
 
         # Incrementar contador de modelos do utilizador
@@ -89,7 +98,9 @@ async def get_status(model_id: str):
     """Devolve o estado atual de um modelo."""
     try:
         sb = get_supabase()
-        result = sb.table("models").select("id, status, model_url, obj_url").eq("id", model_id).single().execute()
+        result = sb.table("models").select(
+            "id, status, model_url, obj_url, splat_url, stl_url, watermark"
+        ).eq("id", model_id).single().execute()
         if not result.data:
             raise HTTPException(status_code=404, detail="Modelo não encontrado")
         return result.data

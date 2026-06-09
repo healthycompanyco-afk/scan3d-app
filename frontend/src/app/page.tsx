@@ -127,6 +127,49 @@ export default function LandingPage() {
         </Link>
       </section>
 
+      {/* FAQ */}
+      <section className="bg-gray-50 py-20">
+        <div className="max-w-3xl mx-auto px-6 sm:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12">Perguntas frequentes</h2>
+          <div className="space-y-3">
+            {[
+              {
+                q: 'Quantas fotos preciso de tirar?',
+                a: 'Basta 1 foto, mas para o melhor resultado recomendamos 4 a 6 fotos do produto de ângulos diferentes (frente, trás, lados). Temos um guia visual dentro da app a explicar como tirar fotos perfeitas.',
+              },
+              {
+                q: 'Quanto tempo demora a gerar um modelo?',
+                a: 'Normalmente alguns minutos. Depois recebes um modelo 3D interativo que podes ver no browser, descarregar ou incorporar na tua loja.',
+              },
+              {
+                q: 'Que formatos posso descarregar?',
+                a: 'Todos os planos incluem .glb (para web e AR). Os planos pagos incluem ainda .obj e .stl — este último pronto para impressão 3D.',
+              },
+              {
+                q: 'Posso usar os modelos na minha loja online?',
+                a: 'Sim! Tens um widget para incorporar o modelo 3D em qualquer site (Shopify, WooCommerce, etc.). O plano Pro inclui também uso comercial.',
+              },
+              {
+                q: 'Que tipo de produtos funcionam melhor?',
+                a: 'Produtos sólidos e foscos, bem iluminados, com fundo simples. Objetos transparentes, de vidro ou muito brilhantes/metálicos são mais difíceis para a IA.',
+              },
+              {
+                q: 'É mesmo grátis?',
+                a: 'Sim, o plano Explorer dá-te 3 modelos por mês de graça, sem cartão de crédito. Só pagas se quiseres mais modelos ou tirar a marca de água.',
+              },
+            ].map(({ q, a }) => (
+              <details key={q} className="bg-white rounded-xl border border-gray-100 p-5 group">
+                <summary className="font-semibold text-gray-800 cursor-pointer list-none flex justify-between items-center">
+                  {q}
+                  <span className="text-brand-600 group-open:rotate-45 transition-transform text-xl">+</span>
+                </summary>
+                <p className="text-gray-600 text-sm mt-3">{a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA final */}
       <section className="bg-brand-600 py-16">
         <div className="max-w-3xl mx-auto px-6 sm:px-8 text-center">
