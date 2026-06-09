@@ -6,6 +6,7 @@ import ModelViewer from '@/components/ModelViewer'
 import SplatViewer from '@/components/SplatViewer'
 import StatusBadge from '@/components/StatusBadge'
 import Logo from '@/components/Logo'
+import Watermark from '@/components/Watermark'
 
 type Model = {
   id: string
@@ -15,6 +16,7 @@ type Model = {
   obj_url: string | null
   splat_url: string | null
   stl_url: string | null
+  watermark: boolean
   input_type: string
   frames_count: number
   created_at: string
@@ -92,21 +94,24 @@ export default function ModelPage({ params }: { params: { id: string } }) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-semibold text-gray-300 mb-2">✨ Realista (cores + brilho reais)</p>
-                <div className="bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '500px' }}>
+                <div className="relative bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '500px' }}>
                   <SplatViewer url={model.splat_url} />
+                  {model.watermark && <Watermark />}
                 </div>
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-300 mb-2">🔷 Malha (para download / AR)</p>
-                <div className="bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '500px' }}>
+                <div className="relative bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '500px' }}>
                   <ModelViewer url={model.model_url} />
+                  {model.watermark && <Watermark />}
                 </div>
               </div>
             </div>
           ) : (
             // Só malha (modelos antigos ou sem splat)
-            <div className="bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '600px' }}>
+            <div className="relative bg-gray-800 rounded-2xl overflow-hidden" style={{ height: '600px' }}>
               <ModelViewer url={model.model_url} />
+              {model.watermark && <Watermark />}
             </div>
           )
         ) : (

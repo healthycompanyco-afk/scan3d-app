@@ -25,6 +25,15 @@ async def check_plan_limit(user_id: str) -> tuple[bool, str]:
     return True, "ok"
 
 
+async def get_plan(user_id: str) -> str:
+    """Devolve o plano atual do utilizador ('free' por defeito)."""
+    sb = get_supabase()
+    result = sb.table("user_profiles").select("plan").eq("id", user_id).single().execute()
+    if not result.data:
+        return "free"
+    return result.data.get("plan", "free")
+
+
 async def increment_model_count(user_id: str):
     """Incrementa o contador de modelos criados este mês."""
     sb = get_supabase()

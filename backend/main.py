@@ -6,7 +6,7 @@ import logging
 from dotenv import load_dotenv
 
 from supabase_utils import get_supabase
-from plans import check_plan_limit, increment_model_count
+from plans import check_plan_limit, increment_model_count, get_plan
 from modal_runner import trigger_reconstruction
 from stripe_webhook import handle_stripe_webhook
 
@@ -48,9 +48,16 @@ async def reconstruct(req: ReconstructRequest):
         if not allowed:
             raise HTTPException(status_code=402, detail=reason)
 
+        # Marca de água: só o plano grátis tem marca de água Snap3D
+        plan = await get_plan(req.user_id)
+        watermark = plan == "free"
+
         # Atualizar estado para 'extracting' (vídeo) ou 'processing' (fotos)
         initial_status = "extracting" if req.input_type == "video" else "processing"
-        sb.table("models").update({"status": initial_status}).eq("id", req.model_id).execute()
+        sb.table("models").update({
+            "status": initial_status,
+            "watermark": watermark,
+        }).eq("id", req.model_id).execute()
 
         # Incrementar contador de modelos do utilizador
         await increment_model_count(req.user_id)
