@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import HeroVisual from '@/components/HeroVisual'
+import NavAuth from '@/components/NavAuth'
 
 export default function LandingPage() {
   return (
@@ -8,13 +9,7 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 sm:px-8 py-4 border-b sticky top-0 bg-white/90 backdrop-blur z-50">
         <Logo height={32} />
-        <div className="flex gap-3 sm:gap-4 items-center">
-          <Link href="/pricing" className="text-gray-600 hover:text-gray-900 text-sm">Preços</Link>
-          <Link href="/login" className="text-gray-600 hover:text-gray-900 text-sm">Entrar</Link>
-          <Link href="/login" className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-500 text-sm font-medium">
-            Começar grátis
-          </Link>
-        </div>
+        <NavAuth />
       </nav>
 
       {/* Hero */}

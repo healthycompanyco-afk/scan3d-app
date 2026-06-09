@@ -56,6 +56,11 @@ export default function DashboardPage() {
     setModels(prev => prev.filter(m => m.id !== id))
   }
 
+  async function logout() {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
   async function manageSubscription() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -81,6 +86,7 @@ export default function DashboardPage() {
         <Link href="/"><Logo height={32} /></Link>
         <div className="flex gap-4 items-center">
           <Link href="/pricing" className="text-sm text-gray-600 hover:text-gray-900">Planos</Link>
+          <button onClick={logout} className="text-sm text-gray-600 hover:text-gray-900">Sair</button>
           <Link href="/upload" className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-brand-500">
             + Novo modelo
           </Link>
