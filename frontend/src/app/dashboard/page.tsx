@@ -13,6 +13,7 @@ type Model = {
   status: string
   input_type: string
   frames_count: number
+  thumbnail_url: string | null
   model_url: string | null
   created_at: string
   expires_at: string
@@ -47,6 +48,13 @@ export default function DashboardPage() {
       // Esconde modelos já expirados (expires_at no passado)
       setModels((modelsData ?? []).filter(m => !m.expires_at || m.expires_at > nowIso))
       setLoading(false)
+
+      // Email de boas-vindas (o backend garante que só envia uma vez)
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/welcome`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id }),
+      }).catch(() => {})
     }
     load()
   }, [supabase, router])

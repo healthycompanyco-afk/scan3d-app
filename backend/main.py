@@ -11,6 +11,7 @@ from plans import check_plan_limit, increment_model_count, get_plan
 from modal_runner import trigger_reconstruction
 from stripe_webhook import handle_stripe_webhook
 from stripe_checkout import create_checkout_session, create_portal_session
+from emails import send_welcome_email, send_model_ready_email
 
 load_dotenv()
 
@@ -41,6 +42,22 @@ class CheckoutRequest(BaseModel):
 
 class PortalRequest(BaseModel):
     user_id: str
+
+
+class WelcomeRequest(BaseModel):
+    user_id: str
+
+
+class NotifyReadyRequest(BaseModel):
+    model_id: str
+
+
+def _user_email(sb, user_id: str):
+    try:
+        res = sb.auth.admin.get_user_by_id(user_id)
+        return res.user.email if res and res.user else None
+    except Exception:
+        return None
 
 
 @app.get("/health")
@@ -135,6 +152,41 @@ async def portal(req: PortalRequest):
     except Exception as e:
         logger.error(f"Erro em /create-portal-session: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/welcome")
+async def welcome(req: WelcomeRequest):
+    """Envia email de boas-vindas (uma vez por utilizador). Idempotente."""
+    try:
+        sb = get_supabase()
+        profile = sb.table("user_profiles").select("welcomed").eq("id", req.user_id).single().execute()
+        if profile.data and profile.data.get("welcomed"):
+            return {"sent": False, "reason": "already welcomed"}
+        email = _user_email(sb, req.user_id)
+        if email:
+            send_welcome_email(email)
+        sb.table("user_profiles").update({"welcomed": True}).eq("id", req.user_id).execute()
+        return {"sent": bool(email)}
+    except Exception as e:
+        logger.error(f"Erro em /welcome: {e}")
+        return {"sent": False}
+
+
+@app.post("/notify-model-ready")
+async def notify_model_ready(req: NotifyReadyRequest):
+    """Chamado pelo Modal quando um modelo fica pronto — envia email ao dono."""
+    try:
+        sb = get_supabase()
+        model = sb.table("models").select("name, user_id").eq("id", req.model_id).single().execute()
+        if not model.data:
+            return {"sent": False}
+        email = _user_email(sb, model.data["user_id"])
+        if email:
+            send_model_ready_email(email, model.data.get("name", "modelo"), req.model_id)
+        return {"sent": bool(email)}
+    except Exception as e:
+        logger.error(f"Erro em /notify-model-ready: {e}")
+        return {"sent": False}
 
 
 @app.post("/webhook/stripe")

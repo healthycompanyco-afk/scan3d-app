@@ -7,6 +7,7 @@ type Model = {
   status: string
   input_type: string
   frames_count: number
+  thumbnail_url: string | null
   created_at: string
   expires_at: string
 }
@@ -17,15 +18,25 @@ export default function ModelCard({ model, onDelete }: { model: Model; onDelete:
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition">
-      <div className="flex items-start justify-between mb-3">
+      {/* Thumbnail / placeholder */}
+      <Link href={`/model/${model.id}`} className="block mb-3">
+        <div className="aspect-square rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
+          {model.thumbnail_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={model.thumbnail_url} alt={model.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-4xl opacity-40">
+              {model.status === 'done' ? '🧊' : model.status === 'error' ? '⚠️' : '⏳'}
+            </span>
+          )}
+        </div>
+      </Link>
+
+      <div className="flex items-start justify-between mb-2">
         <h3 className="font-semibold text-gray-900 truncate flex-1">{model.name}</h3>
         <StatusBadge status={model.status} />
       </div>
 
-      <p className="text-xs text-gray-400 mb-1">
-        {model.input_type === 'video' ? '🎥 Vídeo' : '📷 Fotos'}
-        {model.frames_count ? ` · ${model.frames_count} frames` : ''}
-      </p>
       <p className="text-xs text-gray-400 mb-4">
         Criado em {new Date(model.created_at).toLocaleDateString('pt-PT')}
       </p>

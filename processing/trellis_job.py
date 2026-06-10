@@ -209,6 +209,18 @@ def reconstruct_trellis(model_id: str, user_id: str):
             except Exception:
                 stl_path = None  # se falhar, segue sem STL
 
+            # 4d. Thumbnail — renderiza uma imagem do modelo (vista frontal)
+            thumb_path = workdir / "thumb.png"
+            try:
+                from trellis.utils import render_utils
+                from PIL import Image as PILImage
+                frames = render_utils.render_video(
+                    outputs["gaussian"][0], resolution=512, num_frames=8
+                )["color"]
+                PILImage.fromarray(frames[0]).save(str(thumb_path))
+            except Exception:
+                thumb_path = None  # se falhar, segue sem thumbnail
+
             # 5. Upload para Supabase Storage (GLB + splat)
             glb_storage = f"{user_id}/{model_id}/model.glb"
             sb.storage.from_("models").upload(
@@ -237,7 +249,23 @@ def reconstruct_trellis(model_id: str, user_id: str):
                 )
                 update_data["stl_url"] = sb.storage.from_("models").get_public_url(stl_storage)
 
+            if thumb_path and thumb_path.exists() and thumb_path.stat().st_size > 500:
+                thumb_storage = f"{user_id}/{model_id}/thumb.png"
+                sb.storage.from_("models").upload(
+                    thumb_storage, thumb_path.read_bytes(),
+                    {"content-type": "image/png", "upsert": "true"}
+                )
+                update_data["thumbnail_url"] = sb.storage.from_("models").get_public_url(thumb_storage)
+
             sb.table("models").update(update_data).eq("id", model_id).execute()
+
+            # Avisar o backend para enviar email "modelo pronto" (não crítico)
+            try:
+                import httpx
+                backend_url = os.environ.get("BACKEND_URL", "https://scan3d-backend-fneq.onrender.com")
+                httpx.post(f"{backend_url}/notify-model-ready", json={"model_id": model_id}, timeout=20)
+            except Exception:
+                pass
 
         except Exception as e:
             update_status("error", str(e))
