@@ -163,10 +163,11 @@ async def welcome(req: WelcomeRequest):
         if profile.data and profile.data.get("welcomed"):
             return {"sent": False, "reason": "already welcomed"}
         email = _user_email(sb, req.user_id)
-        if email:
-            send_welcome_email(email)
-        sb.table("user_profiles").update({"welcomed": True}).eq("id", req.user_id).execute()
-        return {"sent": bool(email)}
+        sent = send_welcome_email(email) if email else False
+        # Só marca como 'welcomed' se o email foi mesmo enviado (senão tenta de novo)
+        if sent:
+            sb.table("user_profiles").update({"welcomed": True}).eq("id", req.user_id).execute()
+        return {"sent": sent}
     except Exception as e:
         logger.error(f"Erro em /welcome: {e}")
         return {"sent": False}
