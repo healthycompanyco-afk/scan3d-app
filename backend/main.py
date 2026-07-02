@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, Header
+from fastapi import FastAPI, HTTPException, Request, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
@@ -12,6 +12,7 @@ from modal_runner import trigger_reconstruction
 from stripe_webhook import handle_stripe_webhook
 from stripe_checkout import create_checkout_session, create_portal_session
 from emails import send_welcome_email, send_model_ready_email
+from auth import get_user_id
 
 load_dotenv()
 
@@ -20,9 +21,11 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Scan3D API")
 
+# CORS restrito ao frontend (produção + dev local)
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://scan3d-app.vercel.app")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_URL, "http://localhost:3000"],
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=False,
@@ -66,18 +69,23 @@ def health():
 
 
 @app.post("/reconstruct")
-async def reconstruct(req: ReconstructRequest):
-    """Inicia o processamento 3D de um modelo."""
+async def reconstruct(req: ReconstructRequest, user_id: str = Depends(get_user_id)):
+    """Inicia o processamento 3D de um modelo. user_id vem do token (não do body)."""
     try:
         sb = get_supabase()
 
+        # Verificar que o modelo pertence ao utilizador autenticado
+        owner = sb.table("models").select("user_id").eq("id", req.model_id).single().execute()
+        if not owner.data or owner.data["user_id"] != user_id:
+            raise HTTPException(status_code=403, detail="Este modelo não te pertence.")
+
         # Verificar limite do plano
-        allowed, reason = await check_plan_limit(req.user_id)
+        allowed, reason = await check_plan_limit(user_id)
         if not allowed:
             raise HTTPException(status_code=402, detail=reason)
 
         # Marca de água: só o plano grátis tem marca de água Snap3D
-        plan = await get_plan(req.user_id)
+        plan = await get_plan(user_id)
         watermark = plan == "free"
 
         # Data de expiração conforme o plano (Pro = nunca expira)
@@ -96,10 +104,10 @@ async def reconstruct(req: ReconstructRequest):
         }).eq("id", req.model_id).execute()
 
         # Incrementar contador de modelos do utilizador
-        await increment_model_count(req.user_id)
+        await increment_model_count(user_id)
 
         # Disparar job assíncrono no Modal.com
-        trigger_reconstruction(req.model_id, req.user_id, req.input_type)
+        trigger_reconstruction(req.model_id, user_id, req.input_type)
 
         return {"message": "Processamento iniciado", "model_id": req.model_id}
 
@@ -129,10 +137,10 @@ async def get_status(model_id: str):
 
 
 @app.post("/create-checkout-session")
-async def checkout(req: CheckoutRequest):
+async def checkout(req: CheckoutRequest, user_id: str = Depends(get_user_id)):
     """Cria uma sessão de checkout do Stripe para subscrever um plano."""
     try:
-        url = create_checkout_session(req.user_id, req.plan)
+        url = create_checkout_session(user_id, req.plan)
         return {"url": url}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -142,10 +150,10 @@ async def checkout(req: CheckoutRequest):
 
 
 @app.post("/create-portal-session")
-async def portal(req: PortalRequest):
+async def portal(req: PortalRequest, user_id: str = Depends(get_user_id)):
     """Cria uma sessão do portal de cliente Stripe (gerir/cancelar)."""
     try:
-        url = create_portal_session(req.user_id)
+        url = create_portal_session(user_id)
         return {"url": url}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -155,18 +163,18 @@ async def portal(req: PortalRequest):
 
 
 @app.post("/welcome")
-async def welcome(req: WelcomeRequest):
+async def welcome(user_id: str = Depends(get_user_id)):
     """Envia email de boas-vindas (uma vez por utilizador). Idempotente."""
     try:
         sb = get_supabase()
-        profile = sb.table("user_profiles").select("welcomed").eq("id", req.user_id).single().execute()
+        profile = sb.table("user_profiles").select("welcomed").eq("id", user_id).single().execute()
         if profile.data and profile.data.get("welcomed"):
             return {"sent": False, "reason": "already welcomed"}
-        email = _user_email(sb, req.user_id)
+        email = _user_email(sb, user_id)
         sent = send_welcome_email(email) if email else False
         # Só marca como 'welcomed' se o email foi mesmo enviado (senão tenta de novo)
         if sent:
-            sb.table("user_profiles").update({"welcomed": True}).eq("id", req.user_id).execute()
+            sb.table("user_profiles").update({"welcomed": True}).eq("id", user_id).execute()
         return {"sent": sent}
     except Exception as e:
         logger.error(f"Erro em /welcome: {e}")

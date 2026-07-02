@@ -6,6 +6,7 @@ import Link from 'next/link'
 import ModelCard from '@/components/ModelCard'
 import UsageBar from '@/components/UsageBar'
 import Logo from '@/components/Logo'
+import { apiPost } from '@/lib/api'
 
 type Model = {
   id: string
@@ -50,11 +51,7 @@ export default function DashboardPage() {
       setLoading(false)
 
       // Email de boas-vindas (o backend garante que só envia uma vez)
-      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/welcome`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id }),
-      }).catch(() => {})
+      apiPost('/welcome').catch(() => {})
     }
     load()
   }, [supabase, router])
@@ -72,11 +69,7 @@ export default function DashboardPage() {
   async function manageSubscription() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/create-portal-session`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: user.id }),
-    })
+    const res = await apiPost('/create-portal-session', { user_id: user.id })
     if (res.ok) {
       const { url } = await res.json()
       window.location.href = url

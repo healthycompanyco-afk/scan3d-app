@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
+import { apiPost } from '@/lib/api'
 
 /**
  * Botão que inicia o checkout do Stripe para um plano pago.
@@ -34,11 +35,7 @@ export default function CheckoutButton({
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/create-checkout-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id, plan }),
-      })
+      const res = await apiPost('/create-checkout-session', { user_id: user.id, plan })
       if (!res.ok) {
         const e = await res.json().catch(() => ({ detail: 'Erro' }))
         throw new Error(e.detail || `Erro ${res.status}`)

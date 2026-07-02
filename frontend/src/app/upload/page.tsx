@@ -4,6 +4,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import PhotoGuide from '@/components/PhotoGuide'
 import Logo from '@/components/Logo'
+import { apiPost } from '@/lib/api'
 
 export default function UploadPage() {
   const [name, setName] = useState('')
@@ -44,10 +45,8 @@ export default function UploadPage() {
       })
       await Promise.all(uploadPromises)
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/reconstruct`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model_id: model.id, user_id: user.id, input_type: 'ai_single' }),
+      const res = await apiPost('/reconstruct', {
+        model_id: model.id, user_id: user.id, input_type: 'ai_single',
       })
 
       if (!res.ok) {
