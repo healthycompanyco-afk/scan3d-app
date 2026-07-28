@@ -1,5 +1,15 @@
 'use client'
+import dynamic from 'next/dynamic'
 import { useI18n } from '@/lib/i18n'
+
+/**
+ * O modelo WebGL só carrega depois do primeiro paint (não bloqueia a abertura
+ * da página). Até lá — e em dispositivos sem WebGL — fica a versão CSS.
+ */
+const BottleModel = dynamic(() => import('./BottleModel'), {
+  ssr: false,
+  loading: () => <CssBottle />,
+})
 
 /* ---------- Fotos de entrada ---------- */
 
@@ -115,10 +125,10 @@ function Disc({ r, top, containerWidth, color }: { r: number; top: number; conta
 }
 
 /**
- * Proporções retiradas do SVG das fotos de entrada:
- * corpo 30×51 com cantos rx=8, tampa 14×12 assente diretamente no corpo.
+ * Fallback em CSS 3D (usado enquanto o WebGL carrega e em dispositivos sem WebGL).
+ * Proporções retiradas do SVG das fotos: corpo 30×51 com cantos rx=8, tampa 14×12.
  */
-function Bottle() {
+function CssBottle() {
   const W = 64            // largura = diâmetro do corpo
   const bodyR = 32
   const capR = 15, capH = 22
@@ -192,10 +202,10 @@ export default function HeroVisual() {
           </span>
         </div>
 
-        {/* Modelo 3D gerado — a mesma garrafa das fotos */}
-        <div className="shrink-0">
-          <Bottle />
-          <p className="text-[10px] font-medium text-gray-400 text-center mt-2.5">{t('visual.model')}</p>
+        {/* Modelo 3D gerado — a mesma garrafa das fotos, em WebGL */}
+        <div className="shrink-0 flex flex-col items-center">
+          <BottleModel size={124} />
+          <p className="text-[10px] font-medium text-gray-400 text-center mt-1">{t('visual.model')}</p>
         </div>
       </div>
     </div>
