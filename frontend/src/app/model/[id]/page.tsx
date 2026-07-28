@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import ModelViewer from '@/components/ModelViewer'
@@ -7,6 +8,14 @@ import SplatViewer from '@/components/SplatViewer'
 import StatusBadge from '@/components/StatusBadge'
 import Logo from '@/components/Logo'
 import Watermark from '@/components/Watermark'
+
+/* Cubo do logótipo a rodar durante a espera (WebGL — só no browser) */
+const LogoCube3D = dynamic(() => import('@/components/LogoCube3D'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-12 h-12 border-4 border-brand-600 border-t-transparent rounded-full animate-spin" />
+  ),
+})
 
 type Model = {
   id: string
@@ -124,8 +133,8 @@ export default function ModelPage({ params }: { params: { id: string } }) {
               </>
             ) : (
               <>
-                <div className="w-12 h-12 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-gray-300 font-semibold">
+                <LogoCube3D size={110} variant="light" speed={0.9} />
+                <p className="text-gray-300 font-semibold mt-4">
                   {model.status === 'extracting' ? 'A extrair frames do vídeo...' : 'A gerar modelo 3D...'}
                 </p>
                 <p className="text-gray-500 text-sm mt-2">Pode demorar 5-20 minutos. Esta página atualiza automaticamente.</p>

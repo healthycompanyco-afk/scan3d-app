@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import Logo from '@/components/Logo'
 import HeroVisual from '@/components/HeroVisual'
 import NavAuth from '@/components/NavAuth'
@@ -8,6 +9,12 @@ import {
   IconBolt, IconSparkle, IconPhone, IconCart, IconTag,
   IconPrinter, IconCube, IconCamera, IconDownload, IconCheck,
 } from '@/components/Icons'
+
+/* Cubo do logótipo em 3D — só carrega depois do primeiro paint */
+const LogoCube3D = dynamic(() => import('@/components/LogoCube3D'), {
+  ssr: false,
+  loading: () => <div style={{ width: 76, height: 76 }} />,
+})
 
 export default function LandingPage() {
   const { t } = useI18n()
@@ -31,7 +38,10 @@ export default function LandingPage() {
               'radial-gradient(60% 60% at 50% 40%, #e0f2fe 0%, rgba(224,242,254,0) 70%)',
           }}
         />
-        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 pt-16 pb-14 text-center">
+        <div className="relative max-w-5xl mx-auto px-6 sm:px-8 pt-12 pb-14 text-center">
+          <div className="flex justify-center mb-4 animate-fade-up">
+            <LogoCube3D size={76} />
+          </div>
           <h1 className="text-4xl sm:text-6xl font-bold mb-6 leading-[1.08] tracking-tight animate-fade-up">
             {t('hero.title1')}<br />
             <span className="text-gradient">{t('hero.title2')}</span>
