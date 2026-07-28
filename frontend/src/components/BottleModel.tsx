@@ -63,6 +63,14 @@ function Bottle() {
         <latheGeometry args={[cap, 48]} />
         <meshStandardMaterial color="#075985" roughness={0.4} metalness={0.1} />
       </mesh>
+      {/*
+        Rótulo: arco parcial (não uma cinta fechada) — é o que torna a rotação
+        percetível, já que um sólido de revolução é idêntico em todos os ângulos.
+      */}
+      <mesh position={[0, H_BODY * 0.42, 0]}>
+        <cylinderGeometry args={[R_BODY * 1.008, R_BODY * 1.008, 1.15, 48, 1, true, 0, 2.3]} />
+        <meshStandardMaterial color="#f0f9ff" roughness={0.55} metalness={0} side={THREE.DoubleSide} />
+      </mesh>
     </group>
   )
 }
