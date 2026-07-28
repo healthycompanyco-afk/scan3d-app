@@ -22,15 +22,25 @@ export default function NavAuth() {
   return (
     <div className="flex gap-3 sm:gap-4 items-center">
       <LanguageToggle />
-      <Link href="/pricing" className="text-gray-600 hover:text-gray-900 text-sm">{t('nav.pricing')}</Link>
+      <Link href="/pricing" className="hidden sm:inline text-gray-600 hover:text-gray-900 text-sm whitespace-nowrap">
+        {t('nav.pricing')}
+      </Link>
       {loggedIn === null ? null : loggedIn ? (
-        <Link href="/dashboard" className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-500 text-sm font-medium">
+        <Link
+          href="/dashboard"
+          className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-500 text-sm font-medium whitespace-nowrap"
+        >
           {t('nav.myModels')}
         </Link>
       ) : (
         <>
-          <Link href="/login" className="text-gray-600 hover:text-gray-900 text-sm">{t('nav.login')}</Link>
-          <Link href="/login" className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-500 text-sm font-medium">
+          <Link href="/login" className="hidden sm:inline text-gray-600 hover:text-gray-900 text-sm whitespace-nowrap">
+            {t('nav.login')}
+          </Link>
+          <Link
+            href="/login"
+            className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-500 text-sm font-medium whitespace-nowrap"
+          >
             {t('nav.start')}
           </Link>
         </>

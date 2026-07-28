@@ -23,6 +23,19 @@ const dict: Record<string, { pt: string; en: string }> = {
   'hero.ctaPricing': { pt: 'Ver preços', en: 'See pricing' },
   'hero.trust': { pt: '3 modelos grátis por mês · Sem cartão de crédito', en: '3 free models per month · No credit card' },
 
+  // Hero visual
+  'visual.front': { pt: 'Frente', en: 'Front' },
+  'visual.side': { pt: 'Lado', en: 'Side' },
+  'visual.back': { pt: 'Trás', en: 'Back' },
+  'visual.ai': { pt: 'IA', en: 'AI' },
+  'visual.model': { pt: 'Modelo 3D', en: '3D model' },
+
+  // Trust bar
+  'trust.time': { pt: 'minutos por modelo', en: 'minutes per model' },
+  'trust.photos': { pt: 'fotos bastam', en: 'photos are enough' },
+  'trust.formats': { pt: 'formatos de download', en: 'download formats' },
+  'trust.free': { pt: 'modelos grátis/mês', en: 'free models/month' },
+
   // Benefits
   'benefits.title': { pt: 'Porquê Snap3D?', en: 'Why Snap3D?' },
   'benefits.subtitle': { pt: 'Tudo o que precisas, nada do que não precisas.', en: 'Everything you need, nothing you don\'t.' },

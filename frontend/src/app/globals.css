@@ -1,3 +1,53 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ---- Animações da landing ---- */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+@keyframes spin3d {
+  from { transform: rotateX(-16deg) rotateY(0deg); }
+  to   { transform: rotateX(-16deg) rotateY(360deg); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseArrow {
+  0%, 100% { opacity: .45; transform: translateX(0); }
+  50%      { opacity: 1;   transform: translateX(5px); }
+}
+
+.animate-float       { animation: float 5s ease-in-out infinite; }
+.animate-spin3d      { animation: spin3d 16s linear infinite; }
+.animate-fade-up     { animation: fadeUp .7s ease-out both; }
+.animate-pulse-arrow { animation: pulseArrow 1.8s ease-in-out infinite; }
+
+.delay-100 { animation-delay: .1s; }
+.delay-200 { animation-delay: .2s; }
+.delay-300 { animation-delay: .3s; }
+
+/* Cena 3D em CSS */
+.scene-3d  { perspective: 900px; }
+.cube-3d   { transform-style: preserve-3d; }
+.cube-face { position: absolute; inset: 0; }
+
+/* Texto com gradiente */
+.text-gradient {
+  background: linear-gradient(100deg, #0284c7 0%, #0ea5e9 45%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float, .animate-spin3d, .animate-fade-up, .animate-pulse-arrow {
+    animation: none;
+  }
+}
