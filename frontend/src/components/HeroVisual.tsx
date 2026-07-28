@@ -114,17 +114,27 @@ function Disc({ r, top, containerWidth, color }: { r: number; top: number; conta
   )
 }
 
+/**
+ * Proporções retiradas do SVG das fotos de entrada:
+ * corpo 30×51 com cantos rx=8, tampa 14×12 assente diretamente no corpo.
+ */
 function Bottle() {
-  const W = 76           // largura do contentor
-  const H = 142          // altura total
-  const bodyR = 34, bodyH = 74
-  const neckR = 12, neckH = 21
-  const capR = 14, capH = 15
+  const W = 64            // largura = diâmetro do corpo
+  const bodyR = 32
+  const capR = 15, capH = 22
+  const corner = 17       // raio do canto arredondado no topo do corpo
+  const steps = 4         // anéis que desenham esse canto
+  const bodyH = 95
 
-  // Afunilamento do gargalo para o corpo, em passos pequenos (ombros suaves)
-  const shoulder = [16, 21, 26, 30, 33]
-  const shoulderH = 6
-  const shoulderTop = capH + neckH
+  // Perfil do canto: quarto de circunferência de r=capR até r=bodyR
+  const shoulder = Array.from({ length: steps }, (_, i) => {
+    const h = corner / steps
+    const midY = h * (i + 0.5)
+    const a = Math.acos(Math.max(-1, Math.min(1, (corner - midY) / corner)))
+    return { r: (bodyR - corner) + corner * Math.sin(a), top: capH + h * i, h: h + 1 }
+  })
+
+  const H = capH + corner + bodyH
 
   return (
     <div className="scene-3d">
@@ -133,29 +143,20 @@ function Bottle() {
         style={{ width: W, height: H }}
       >
         {/* tampa */}
-        <Cylinder r={capR} h={capH} n={14} top={0} containerWidth={W} dim={0.66} />
+        <Cylinder r={capR} h={capH} n={16} top={0} containerWidth={W} dim={0.66} />
         <Disc r={capR} top={0} containerWidth={W} color={shade(0.6, 0.66)} />
-        {/* gargalo */}
-        <Cylinder r={neckR} h={neckH} n={14} top={capH} containerWidth={W} dim={0.9} />
-        {/* ombros */}
-        {shoulder.map((r, i) => (
-          <Cylinder
-            key={r}
-            r={r}
-            h={shoulderH + 1}
-            n={18}
-            top={shoulderTop + i * shoulderH}
-            containerWidth={W}
-          />
+        {/* canto arredondado do topo do corpo */}
+        {shoulder.map((s, i) => (
+          <Cylinder key={i} r={s.r} h={s.h} n={18} top={s.top} containerWidth={W} />
         ))}
         {/* corpo */}
         <Cylinder
           r={bodyR}
           h={bodyH}
           n={22}
-          top={shoulderTop + shoulder.length * shoulderH}
+          top={capH + corner}
           containerWidth={W}
-          radiusClass="rounded-b-[3px]"
+          radiusClass="rounded-b-[4px]"
         />
       </div>
       {/* sombra de contacto */}
