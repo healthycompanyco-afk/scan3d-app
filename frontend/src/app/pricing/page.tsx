@@ -103,6 +103,11 @@ export default function PricingPage() {
         <p className="text-center text-gray-400 text-sm mt-10">
           Pagamentos processados de forma segura por Stripe. Cancela a qualquer momento.
         </p>
+        <p className="text-center text-gray-400 text-xs mt-3">
+          <Link href="/terms" className="underline hover:text-gray-600">Termos</Link>
+          {' · '}
+          <Link href="/privacy" className="underline hover:text-gray-600">Privacidade</Link>
+        </p>
       </div>
     </div>
   )

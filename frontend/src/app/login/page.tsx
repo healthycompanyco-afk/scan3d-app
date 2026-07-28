@@ -112,6 +112,12 @@ export default function LoginPage() {
             {isSignUp ? 'Entrar' : 'Criar conta grátis'}
           </button>
         </p>
+
+        <p className="text-center text-xs text-gray-400 mt-6">
+          Ao criar conta aceitas os{' '}
+          <a href="/terms" className="underline hover:text-gray-600">Termos</a> e a{' '}
+          <a href="/privacy" className="underline hover:text-gray-600">Política de Privacidade</a>.
+        </p>
       </div>
     </div>
   )

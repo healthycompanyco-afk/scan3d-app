@@ -165,9 +165,11 @@ export default function LandingPage() {
       <footer className="border-t py-10">
         <div className="max-w-5xl mx-auto px-6 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Logo height={28} />
-          <div className="flex gap-6 text-sm text-gray-500">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-500">
             <Link href="/pricing" className="hover:text-gray-900">{t('nav.pricing')}</Link>
             <Link href="/login" className="hover:text-gray-900">{t('nav.login')}</Link>
+            <Link href="/terms" className="hover:text-gray-900">{t('nav.terms')}</Link>
+            <Link href="/privacy" className="hover:text-gray-900">{t('nav.privacy')}</Link>
           </div>
           <p className="text-xs text-gray-400">© {new Date().getFullYear()} Snap3D</p>
         </div>

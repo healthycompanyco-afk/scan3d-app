@@ -9,6 +9,8 @@ const dict: Record<string, { pt: string; en: string }> = {
   'nav.login': { pt: 'Entrar', en: 'Log in' },
   'nav.start': { pt: 'Começar grátis', en: 'Start free' },
   'nav.myModels': { pt: 'Os meus modelos', en: 'My models' },
+  'nav.terms': { pt: 'Termos', en: 'Terms' },
+  'nav.privacy': { pt: 'Privacidade', en: 'Privacy' },
 
   // Hero
   'hero.title1': { pt: 'Transforma fotos em', en: 'Turn photos into' },
