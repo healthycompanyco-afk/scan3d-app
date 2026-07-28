@@ -1,27 +1,17 @@
 'use client'
 import { useI18n } from '@/lib/i18n'
 
+/* ---------- Fotos de entrada ---------- */
+
 /**
  * Cartão que simula uma fotografia do produto num dado ângulo.
- * O posicionamento fica no wrapper exterior; a animação no interior
+ * O posicionamento fica no wrapper exterior e a animação no interior
  * (senão os keyframes de `transform` anulavam a posição).
  */
 function PhotoCard({
-  label,
-  x,
-  y,
-  rotate,
-  delay,
-  z,
-  flip = false,
+  label, x, y, rotate, delay, z, flip = false,
 }: {
-  label: string
-  x: number
-  y: number
-  rotate: number
-  delay: string
-  z: number
-  flip?: boolean
+  label: string; x: number; y: number; rotate: number; delay: string; z: number; flip?: boolean
 }) {
   const id = label.replace(/\s/g, '')
   return (
@@ -54,40 +44,130 @@ function PhotoCard({
   )
 }
 
-/** Cubo 3D real (CSS transforms) que representa o modelo gerado. */
-function Cube() {
-  const S = 58 // meia-aresta
-  const faces = [
-    { t: `translateZ(${S}px)`, from: '#38bdf8', to: '#0284c7' },
-    { t: `rotateY(180deg) translateZ(${S}px)`, from: '#0369a1', to: '#075985' },
-    { t: `rotateY(90deg) translateZ(${S}px)`, from: '#0284c7', to: '#075985' },
-    { t: `rotateY(-90deg) translateZ(${S}px)`, from: '#38bdf8', to: '#0369a1' },
-    { t: `rotateX(90deg) translateZ(${S}px)`, from: '#bae6fd', to: '#7dd3fc' },
-    { t: `rotateX(-90deg) translateZ(${S}px)`, from: '#075985', to: '#0c4a6e' },
-  ]
+/* ---------- Garrafa 3D (mesmo produto das fotos) ---------- */
+
+const DARK = [7, 89, 133]     // #075985
+const LIGHT = [125, 211, 252] // #7dd3fc
+
+/**
+ * Interpola entre o tom escuro e o claro (sombreado cilíndrico).
+ * O piso em 0.2 evita que as faces laterais fiquem demasiado escuras
+ * face às fotos de entrada.
+ */
+function shade(t: number, dim = 1) {
+  const lifted = 0.2 + 0.8 * t
+  const c = DARK.map((d, i) => Math.round((d + (LIGHT[i] - d) * lifted) * dim))
+  return `rgb(${c[0]},${c[1]},${c[2]})`
+}
+
+/**
+ * Cilindro em CSS 3D: N faces planas dispostas em círculo.
+ * A cor de cada face varia com o ângulo, o que dá o volume cilíndrico.
+ */
+function Cylinder({
+  r, h, n, top, containerWidth, dim = 1, radiusClass = '',
+}: {
+  r: number; h: number; n: number; top: number; containerWidth: number; dim?: number; radiusClass?: string
+}) {
+  const faceW = (2 * Math.PI * r) / n + 1.2 // +overlap para não haver frestas
   return (
-    <div className="scene-3d">
-      <div className="cube-3d animate-spin3d relative mx-auto" style={{ width: S * 2, height: S * 2 }}>
-        {faces.map((f, i) => (
+    <div
+      className="absolute cube-3d"
+      style={{ top, left: containerWidth / 2 - r, width: r * 2, height: h }}
+    >
+      {Array.from({ length: n }).map((_, i) => {
+        const angle = (i / n) * 360
+        const t = (Math.cos((angle * Math.PI) / 180) + 1) / 2
+        return (
           <div
             key={i}
-            className="cube-face rounded-lg"
+            className={`absolute ${radiusClass}`}
             style={{
-              transform: f.t,
-              background: `linear-gradient(135deg, ${f.from}, ${f.to})`,
-              boxShadow: 'inset 0 0 30px rgba(255,255,255,.22)',
-              border: '1px solid rgba(255,255,255,.25)',
+              width: faceW,
+              height: h,
+              left: r - faceW / 2,
+              top: 0,
+              background: `linear-gradient(to bottom, ${shade(t, dim)}, ${shade(t * 0.78, dim * 0.92)})`,
+              transform: `rotateY(${angle}deg) translateZ(${r}px)`,
             }}
           />
-        ))}
-      </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Tampo circular (disco) no topo de um cilindro. */
+function Disc({ r, top, containerWidth, color }: { r: number; top: number; containerWidth: number; color: string }) {
+  return (
+    <div
+      className="absolute rounded-full"
+      style={{
+        width: r * 2,
+        height: r * 2,
+        top: top - r,
+        left: containerWidth / 2 - r,
+        background: color,
+        transform: 'rotateX(90deg)',
+      }}
+    />
+  )
+}
+
+function Bottle() {
+  const W = 76           // largura do contentor
+  const H = 142          // altura total
+  const bodyR = 34, bodyH = 74
+  const neckR = 12, neckH = 21
+  const capR = 14, capH = 15
+
+  // Afunilamento do gargalo para o corpo, em passos pequenos (ombros suaves)
+  const shoulder = [16, 21, 26, 30, 33]
+  const shoulderH = 6
+  const shoulderTop = capH + neckH
+
+  return (
+    <div className="scene-3d">
       <div
-        className="mx-auto rounded-[50%] bg-slate-900/20 blur-md"
-        style={{ width: S * 1.7, height: 12, marginTop: 14 }}
+        className="cube-3d animate-spin3d relative mx-auto"
+        style={{ width: W, height: H }}
+      >
+        {/* tampa */}
+        <Cylinder r={capR} h={capH} n={14} top={0} containerWidth={W} dim={0.66} />
+        <Disc r={capR} top={0} containerWidth={W} color={shade(0.6, 0.66)} />
+        {/* gargalo */}
+        <Cylinder r={neckR} h={neckH} n={14} top={capH} containerWidth={W} dim={0.9} />
+        {/* ombros */}
+        {shoulder.map((r, i) => (
+          <Cylinder
+            key={r}
+            r={r}
+            h={shoulderH + 1}
+            n={18}
+            top={shoulderTop + i * shoulderH}
+            containerWidth={W}
+          />
+        ))}
+        {/* corpo */}
+        <Cylinder
+          r={bodyR}
+          h={bodyH}
+          n={22}
+          top={shoulderTop + shoulder.length * shoulderH}
+          containerWidth={W}
+          radiusClass="rounded-b-[3px]"
+        />
+      </div>
+      {/* sombra de contacto */}
+      <div
+        className="mx-auto rounded-[50%] bg-slate-900/25 blur-md"
+        style={{ width: bodyR * 1.9, height: 12, marginTop: 10 }}
       />
     </div>
   )
 }
+
+/* ---------- Composição ---------- */
 
 export default function HeroVisual() {
   const { t } = useI18n()
@@ -111,9 +191,9 @@ export default function HeroVisual() {
           </span>
         </div>
 
-        {/* Modelo 3D */}
+        {/* Modelo 3D gerado — a mesma garrafa das fotos */}
         <div className="shrink-0">
-          <Cube />
+          <Bottle />
           <p className="text-[10px] font-medium text-gray-400 text-center mt-2.5">{t('visual.model')}</p>
         </div>
       </div>
