@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import Logo from '@/components/Logo'
 import HeroVisual from '@/components/HeroVisual'
 import NavAuth from '@/components/NavAuth'
+import ExamplesGallery from '@/components/ExamplesGallery'
 import { useI18n } from '@/lib/i18n'
 import {
   IconBolt, IconSparkle, IconPhone, IconCart, IconTag,
@@ -89,6 +90,9 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* Exemplos reais (só aparece se houver modelos públicos) */}
+      <ExamplesGallery />
 
       {/* Benefícios */}
       <section className="py-20">

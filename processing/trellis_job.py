@@ -249,6 +249,21 @@ def reconstruct_trellis(model_id: str, user_id: str):
                 )
                 update_data["stl_url"] = sb.storage.from_("models").get_public_url(stl_storage)
 
+            # Cópia pública da 1ª foto de entrada — permite mostrar o par
+            # "foto → modelo" na galeria (o bucket `uploads` é privado).
+            try:
+                src_name = image_names[0]
+                ext = src_name.rsplit(".", 1)[-1].lower()
+                mime = "image/jpeg" if ext in ("jpg", "jpeg") else f"image/{ext}"
+                src_storage = f"{user_id}/{model_id}/source.{ext}"
+                sb.storage.from_("models").upload(
+                    src_storage, (workdir / src_name).read_bytes(),
+                    {"content-type": mime, "upsert": "true"}
+                )
+                update_data["source_url"] = sb.storage.from_("models").get_public_url(src_storage)
+            except Exception:
+                pass
+
             if thumb_path and thumb_path.exists() and thumb_path.stat().st_size > 500:
                 thumb_storage = f"{user_id}/{model_id}/thumb.png"
                 sb.storage.from_("models").upload(

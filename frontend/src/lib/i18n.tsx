@@ -30,6 +30,16 @@ const dict: Record<string, { pt: string; en: string }> = {
   'visual.ai': { pt: 'IA', en: 'AI' },
   'visual.model': { pt: 'Modelo 3D', en: '3D model' },
 
+  // Galeria de exemplos
+  'gallery.title': { pt: 'Feito com o Snap3D', en: 'Made with Snap3D' },
+  'gallery.subtitle': {
+    pt: 'Exemplos reais: a foto que entrou e o modelo 3D que saiu. Clica para rodar.',
+    en: 'Real examples: the photo that went in and the 3D model that came out. Click to rotate.',
+  },
+  'gallery.photo': { pt: 'Foto', en: 'Photo' },
+  'gallery.model': { pt: 'Modelo 3D', en: '3D model' },
+  'gallery.view': { pt: 'Ver em 3D →', en: 'View in 3D →' },
+
   // Trust bar
   'trust.time': { pt: 'minutos por modelo', en: 'minutes per model' },
   'trust.photos': { pt: 'fotos bastam', en: 'photos are enough' },
