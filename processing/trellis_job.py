@@ -214,8 +214,10 @@ def reconstruct_trellis(model_id: str, user_id: str):
             try:
                 from trellis.utils import render_utils
                 from PIL import Image as PILImage
+                # Fundo branco (o padrão é preto) para a miniatura combinar
+                # com as fotos de entrada na galeria
                 frames = render_utils.render_video(
-                    outputs["gaussian"][0], resolution=512, num_frames=8
+                    outputs["gaussian"][0], resolution=512, num_frames=8, bg_color=(1, 1, 1)
                 )["color"]
                 PILImage.fromarray(frames[0]).save(str(thumb_path))
             except Exception:
