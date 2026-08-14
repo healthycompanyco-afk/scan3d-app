@@ -44,7 +44,9 @@ async def handle_stripe_webhook(body: bytes, signature: str):
     if etype in ("customer.subscription.created", "customer.subscription.updated"):
         sub = event["data"]["object"]
         customer_id = sub["customer"]
-        status = sub.get("status")
+        # Acesso só por chave: o StripeObject desta versão do SDK não expõe
+        # `.get()` — chamá-lo levanta AttributeError e devolvia 500 à Stripe.
+        status = sub["status"] if "status" in sub else None
         price_id = sub["items"]["data"][0]["price"]["id"]
 
         if status not in ACTIVE_STATUSES:
