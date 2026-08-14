@@ -56,9 +56,21 @@ export default function TermsPage() {
             <li>O plano gratuito inclui um número limitado de modelos por mês.</li>
             <li>Os planos pagos são subscrições mensais, cobradas de forma recorrente via Stripe.</li>
             <li>Podes cancelar a qualquer momento; o acesso mantém-se até ao fim do período já pago.</li>
-            <li>Salvo obrigação legal, não há reembolso de períodos já iniciados.</li>
             <li>Os preços podem ser alterados, com aviso prévio antes da renovação.</li>
           </ul>
+
+          <h2>5.1 Direito de livre resolução (consumidores da UE)</h2>
+          <p>
+            Enquanto consumidor na União Europeia, tens 14 dias para resolver o contrato sem
+            indicar motivo. Ao subscreveres e começares a usar o serviço dentro desse prazo,
+            pedes expressamente o início imediato da prestação: nesse caso, se resolveres o
+            contrato, pagas apenas a parte proporcional ao que já foi prestado até ao pedido de
+            resolução. Para exercer este direito, basta escreveres para{' '}
+            <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>.
+          </p>
+          <p>
+            Fora deste prazo, e salvo obrigação legal, não há reembolso de períodos já iniciados.
+          </p>
 
           <h2>6. Retenção e expiração</h2>
           <p>
@@ -146,9 +158,22 @@ export default function TermsPage() {
             <li>The free plan includes a limited number of models per month.</li>
             <li>Paid plans are monthly subscriptions billed recurrently via Stripe.</li>
             <li>You may cancel at any time; access continues until the end of the paid period.</li>
-            <li>Except where legally required, periods already started are non-refundable.</li>
             <li>Prices may change, with notice before renewal.</li>
           </ul>
+
+          <h2>5.1 Right of withdrawal (EU consumers)</h2>
+          <p>
+            As a consumer in the European Union you have 14 days to withdraw from the contract
+            without giving a reason. By subscribing and starting to use the service within that
+            period, you expressly request immediate performance: if you then withdraw, you pay
+            only the proportion of the service already provided up to your withdrawal request. To
+            exercise this right, simply email{' '}
+            <a href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a>.
+          </p>
+          <p>
+            Outside that period, and except where legally required, periods already started are
+            non-refundable.
+          </p>
 
           <h2>6. Retention and expiry</h2>
           <p>

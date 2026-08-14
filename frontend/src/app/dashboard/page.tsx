@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [models, setModels] = useState<Model[]>([])
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [justUpgraded, setJustUpgraded] = useState(false)
   const supabase = createClientComponentClient()
   const router = useRouter()
 
@@ -52,6 +53,18 @@ export default function DashboardPage() {
 
       // Email de boas-vindas (o backend garante que só envia uma vez)
       apiPost('/welcome').catch(() => {})
+
+      // Regresso do checkout Stripe: confirmar e reler o plano, porque o
+      // webhook pode demorar alguns segundos a chegar.
+      if (new URLSearchParams(window.location.search).has('upgraded')) {
+        setJustUpgraded(true)
+        window.history.replaceState({}, '', '/dashboard')
+        setTimeout(async () => {
+          const { data } = await supabase
+            .from('user_profiles').select('plan, models_this_month').eq('id', user.id).single()
+          if (data) setProfile(data)
+        }, 4000)
+      }
     }
     load()
   }, [supabase, router])
@@ -95,6 +108,19 @@ export default function DashboardPage() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-8 py-10">
+        {justUpgraded && (
+          <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-4 flex items-start gap-3">
+            <span className="text-green-600 text-lg leading-none">✓</span>
+            <div>
+              <p className="font-semibold text-green-900">Pagamento recebido. Obrigado!</p>
+              <p className="text-green-800 text-sm mt-0.5">
+                O teu plano é ativado em poucos segundos. Os modelos novos deixam de ter marca de água.
+                Recebes o recibo por email da Stripe.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold">Os meus modelos</h1>
