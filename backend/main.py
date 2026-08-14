@@ -21,11 +21,18 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Snap3D API")
 
-# CORS restrito ao frontend (produção + dev local)
+# CORS restrito ao frontend (produção + dev local).
+# Aceita apex e www: qual deles é canónico depende da configuração do Vercel,
+# e um redirecionamento inesperado bloquearia todos os pedidos à API.
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://snap3d.app")
+_alt_origin = (
+    FRONTEND_URL.replace("://www.", "://")
+    if "://www." in FRONTEND_URL
+    else FRONTEND_URL.replace("://", "://www.")
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://localhost:3000"],
+    allow_origins=[FRONTEND_URL, _alt_origin, "http://localhost:3000"],
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=False,
