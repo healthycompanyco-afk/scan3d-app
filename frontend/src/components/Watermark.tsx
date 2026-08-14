@@ -12,8 +12,8 @@ export default function Watermark() {
         <Logo variant="light" showText={false} height={18} />
         <span className="text-white/90 text-xs font-medium">criado com Snap3D</span>
       </div>
-      {/* Marca ténue ao centro (mais difícil de recortar) */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-[0.07]">
+      {/* Marca ao centro (mais difícil de recortar) */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-20">
         <Logo variant="light" height={48} />
       </div>
     </div>
