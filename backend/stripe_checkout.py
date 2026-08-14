@@ -27,13 +27,31 @@ def _get_user_email(sb, user_id: str) -> str | None:
         return None
 
 
+def _customer_exists(customer_id: str) -> bool:
+    """Confirma que o cliente existe nesta conta/modo do Stripe."""
+    try:
+        customer = stripe.Customer.retrieve(customer_id)
+        return not getattr(customer, "deleted", False)
+    except stripe.error.InvalidRequestError:
+        return False
+
+
 def _ensure_customer(sb, user_id: str) -> str:
-    """Devolve o stripe_customer_id do utilizador, criando-o se necessário."""
+    """Devolve o stripe_customer_id do utilizador, criando-o se necessário.
+
+    Um ID guardado pode não existir no Stripe: clientes criados em modo de
+    teste não existem em produção (e vice-versa), e um cliente pode ter sido
+    apagado. Nesses casos cria-se um novo em vez de rebentar o checkout.
+    """
     profile = sb.table("user_profiles").select("stripe_customer_id").eq("id", user_id).single().execute()
     customer_id = profile.data.get("stripe_customer_id") if profile.data else None
 
     if customer_id:
-        return customer_id
+        if _customer_exists(customer_id):
+            return customer_id
+        logger.warning(
+            f"stripe_customer_id '{customer_id}' não existe nesta conta/modo — a criar novo."
+        )
 
     email = _get_user_email(sb, user_id)
     customer = stripe.Customer.create(
