@@ -128,16 +128,18 @@ export default function ModelPage({ params }: { params: { id: string } }) {
             {model.status === 'error' ? (
               <>
                 <p className="text-red-400 text-lg font-semibold">Erro no processamento</p>
-                <p className="text-gray-400 text-sm mt-2">Verifica se as fotos/vídeo têm boa qualidade e iluminação.</p>
+                <p className="text-gray-400 text-sm mt-2">
+                  Verifica se as fotos estão nítidas, bem iluminadas e com fundo simples.
+                </p>
                 <Link href="/upload" className="mt-4 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm">Tentar novamente</Link>
               </>
             ) : (
               <>
                 <LogoCube3D size={110} variant="light" speed={0.9} />
                 <p className="text-gray-300 font-semibold mt-4">
-                  {model.status === 'extracting' ? 'A extrair frames do vídeo...' : 'A gerar modelo 3D...'}
+                  A gerar modelo 3D...
                 </p>
-                <p className="text-gray-500 text-sm mt-2">Pode demorar 5-20 minutos. Esta página atualiza automaticamente.</p>
+                <p className="text-gray-500 text-sm mt-2">Costuma demorar 2-5 minutos. Esta página atualiza automaticamente.</p>
               </>
             )}
           </div>

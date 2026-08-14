@@ -39,6 +39,10 @@ const dict: Record<string, { pt: string; en: string }> = {
   'gallery.photo': { pt: 'Foto', en: 'Photo' },
   'gallery.model': { pt: 'Modelo 3D', en: '3D model' },
   'gallery.view': { pt: 'Ver em 3D →', en: 'View in 3D →' },
+  'gallery.credit': {
+    pt: 'Fotos de demonstração: Google Scanned Objects (CC BY 4.0)',
+    en: 'Demo photos: Google Scanned Objects (CC BY 4.0)',
+  },
 
   // Trust bar
   'trust.time': { pt: 'minutos por modelo', en: 'minutes per model' },
