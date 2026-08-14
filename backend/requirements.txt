@@ -3,6 +3,8 @@ uvicorn[standard]
 python-multipart
 supabase>=2.7.0,<3.0.0
 ffmpeg-python
-stripe
+# Versão fixa: um salto de major do SDK já partiu os pagamentos em produção
+# (o StripeObject deixou de ter .get() e o webhook passou a devolver 500).
+stripe>=15.5,<16
 python-jose[cryptography]
 python-dotenv
