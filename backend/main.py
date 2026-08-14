@@ -72,7 +72,14 @@ def _user_email(sb, user_id: str):
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    """Estado do serviço + versões que importam para diagnóstico.
+    O SDK da Stripe já partiu os pagamentos ao mudar de versão sozinho,
+    por isso convém poder consultá-la sem entrar nos logs."""
+    import stripe as _stripe
+    return {
+        "status": "ok",
+        "stripe_sdk": getattr(_stripe, "VERSION", "desconhecida"),
+    }
 
 
 @app.post("/reconstruct")
