@@ -11,7 +11,7 @@ export const LEGAL = {
   // Email de contacto para questões legais / proteção de dados
   contactEmail: 'healthycompanyco@gmail.com',
   // Site (atualizar quando tiveres domínio próprio)
-  website: 'https://scan3d-app.vercel.app',
+  website: 'https://snap3d.app',
   // Data da última atualização dos documentos
   lastUpdated: '2026-07-28',
 }

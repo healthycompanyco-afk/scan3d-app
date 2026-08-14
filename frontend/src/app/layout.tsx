@@ -5,10 +5,24 @@ import { I18nProvider } from '@/lib/i18n'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const TITLE = 'Snap3D — Modelos 3D para E-commerce'
+const DESCRIPTION =
+  'Tira 4-6 fotos do teu produto. A nossa IA gera um modelo 3D fotorrealista pronto para a tua loja em minutos.'
+
 export const metadata: Metadata = {
-  title: 'Snap3D — Modelos 3D para E-commerce',
-  description: 'Tira 4-6 fotos do teu produto. A nossa IA gera um modelo 3D fotorrealista pronto para a tua loja em minutos.',
+  metadataBase: new URL('https://snap3d.app'),
+  title: TITLE,
+  description: DESCRIPTION,
   icons: { icon: '/icon.svg' },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: 'https://snap3d.app',
+    siteName: 'Snap3D',
+    type: 'website',
+  },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION },
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

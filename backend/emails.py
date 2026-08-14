@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 EMAIL_FROM = os.environ.get("EMAIL_FROM", "Snap3D <onboarding@resend.dev>")
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://scan3d-app.vercel.app")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://snap3d.app")
 
 
 def _send(to: str, subject: str, html: str) -> bool:

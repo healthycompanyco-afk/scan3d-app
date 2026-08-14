@@ -19,10 +19,10 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Scan3D API")
+app = FastAPI(title="Snap3D API")
 
 # CORS restrito ao frontend (produção + dev local)
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://scan3d-app.vercel.app")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://snap3d.app")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[FRONTEND_URL, "http://localhost:3000"],

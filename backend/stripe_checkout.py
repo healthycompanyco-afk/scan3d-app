@@ -7,12 +7,14 @@ logger = logging.getLogger(__name__)
 
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
 
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://scan3d-app.vercel.app")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://snap3d.app")
 
-# Plano → price_id do Stripe (configurável por env, com defaults conhecidos)
+# Plano → price_id do Stripe. Sem valores por omissão de propósito: em produção
+# os IDs são diferentes dos de teste, e um default silencioso levaria a cobrar
+# pelo preço errado ou a não reconhecer o plano no webhook.
 PLAN_PRICE = {
-    "creator": os.environ.get("STRIPE_PRICE_CREATOR", "price_1TX6Jg2Fyj45YCYbf2NgyGyJ"),
-    "pro":     os.environ.get("STRIPE_PRICE_PRO", "price_1TX6K82Fyj45YCYbhmih3ZQa"),
+    "creator": os.environ.get("STRIPE_PRICE_CREATOR", ""),
+    "pro":     os.environ.get("STRIPE_PRICE_PRO", ""),
 }
 
 
@@ -48,6 +50,12 @@ def create_checkout_session(user_id: str, plan: str) -> str:
     """Cria uma sessão de checkout do Stripe e devolve o URL."""
     if plan not in PLAN_PRICE:
         raise ValueError(f"Plano inválido: {plan}")
+    if not PLAN_PRICE[plan]:
+        env_var = f"STRIPE_PRICE_{plan.upper()}"
+        logger.error(f"{env_var} não está definida — checkout impossível.")
+        raise ValueError(
+            "Pagamentos temporariamente indisponíveis. Já fomos notificados."
+        )
 
     sb = get_supabase()
     customer_id = _ensure_customer(sb, user_id)
