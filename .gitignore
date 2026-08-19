@@ -8,4 +8,7 @@ __pycache__/
 .DS_Store
 
 # Fotos de exemplo (uso local, licença CC BY de terceiros)
-exemplos/
+/exemplos/
+
+# Cópias de segurança locais (contêm dados de clientes)
+backups/

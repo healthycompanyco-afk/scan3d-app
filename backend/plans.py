@@ -59,6 +59,21 @@ async def get_plan(user_id: str) -> str:
     return result.data.get("plan", "free")
 
 
+async def decrement_model_count(user_id: str):
+    """Devolve uma unidade da quota mensal.
+
+    Chamado quando a geração falha: o contador é incrementado antes de o
+    trabalho começar, e seria injusto o cliente perder um modelo por um erro
+    nosso. Nunca desce abaixo de zero.
+    """
+    sb = get_supabase()
+    profile = sb.table("user_profiles").select("models_this_month").eq("id", user_id).single().execute()
+    current = profile.data.get("models_this_month", 0) if profile.data else 0
+    sb.table("user_profiles").update(
+        {"models_this_month": max(0, current - 1)}
+    ).eq("id", user_id).execute()
+
+
 async def increment_model_count(user_id: str):
     """Incrementa o contador de modelos criados este mês."""
     sb = get_supabase()

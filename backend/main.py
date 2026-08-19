@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 
 from supabase_utils import get_supabase
-from plans import check_plan_limit, increment_model_count, get_plan
+from plans import check_plan_limit, increment_model_count, decrement_model_count, get_plan
 from modal_runner import trigger_reconstruction
 from stripe_webhook import handle_stripe_webhook
 from stripe_checkout import create_checkout_session, create_portal_session
@@ -137,8 +137,22 @@ async def reconstruct(req: ReconstructRequest, user_id: str = Depends(get_user_i
         # Incrementar contador de modelos do utilizador
         await increment_model_count(user_id)
 
-        # Disparar job assíncrono no Modal.com
-        trigger_reconstruction(req.model_id, user_id, req.input_type)
+        # Disparar job assíncrono no Modal.com. Se nem sequer conseguirmos
+        # entregar o trabalho, devolvemos a quota e marcamos o erro — caso
+        # contrário o cliente perdia um modelo sem nada em troca.
+        try:
+            trigger_reconstruction(req.model_id, user_id, req.input_type)
+        except Exception as e:
+            logger.error(f"Falha ao disparar o Modal: {e}", exc_info=True)
+            await decrement_model_count(user_id)
+            sb.table("models").update({
+                "status": "error",
+                "error_msg": "Não foi possível iniciar o processamento.",
+            }).eq("id", req.model_id).execute()
+            raise HTTPException(
+                status_code=502,
+                detail="Não foi possível iniciar o processamento. Tenta novamente em minutos.",
+            )
 
         return {"message": "Processamento iniciado", "model_id": req.model_id}
 

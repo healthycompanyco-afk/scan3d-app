@@ -131,6 +131,21 @@ def reconstruct_trellis(model_id: str, user_id: str):
             data["error_msg"] = error_msg[:500]
         sb.table("models").update(data).eq("id", model_id).execute()
 
+    def refund_quota():
+        """Devolve a unidade de quota consumida quando a geração falha.
+
+        O contador é incrementado no backend antes de o trabalho começar; sem
+        isto o cliente perdia um modelo por um erro que não é dele.
+        """
+        try:
+            prof = sb.table("user_profiles").select("models_this_month").eq("id", user_id).single().execute()
+            atual = prof.data.get("models_this_month", 0) if prof.data else 0
+            sb.table("user_profiles").update(
+                {"models_this_month": max(0, atual - 1)}
+            ).eq("id", user_id).execute()
+        except Exception:
+            pass
+
     with tempfile.TemporaryDirectory() as workdir:
         workdir = Path(workdir)
 
@@ -286,4 +301,5 @@ def reconstruct_trellis(model_id: str, user_id: str):
 
         except Exception as e:
             update_status("error", str(e))
+            refund_quota()
             raise

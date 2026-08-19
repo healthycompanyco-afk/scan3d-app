@@ -11,8 +11,31 @@ export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [loadingSample, setLoadingSample] = useState(false)
   const supabase = createClientComponentClient()
   const router = useRouter()
+
+  /** Carrega um conjunto de fotos de demonstração, para quem quer ver o
+   *  resultado antes de ir fotografar o próprio produto. */
+  async function usarExemplo() {
+    setLoadingSample(true)
+    setError('')
+    try {
+      const nomes = ['tenis_0', 'tenis_1', 'tenis_2', 'tenis_3', 'tenis_4']
+      const ficheiros = await Promise.all(
+        nomes.map(async n => {
+          const r = await fetch(`/exemplos/${n}.jpg`)
+          const blob = await r.blob()
+          return new File([blob], `${n}.jpg`, { type: 'image/jpeg' })
+        })
+      )
+      setFiles(ficheiros)
+      if (!name.trim()) setName('Sapato (exemplo)')
+    } catch {
+      setError('Não foi possível carregar as fotos de exemplo.')
+    }
+    setLoadingSample(false)
+  }
 
   function onPick(selected: FileList | null) {
     if (!selected) return
@@ -72,6 +95,24 @@ export default function UploadPage() {
         <p className="text-gray-500 text-sm mb-8">
           Carrega 4 a 6 fotos do teu produto e geramos um modelo 3D fotorrealista.
         </p>
+
+        {/* Atalho: experimentar sem ter de ir fotografar */}
+        <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold text-brand-900 text-sm">Ainda não tens fotos?</p>
+            <p className="text-brand-800 text-sm">
+              Experimenta com um produto de demonstração e vê o resultado em minutos.
+            </p>
+          </div>
+          <button
+            onClick={usarExemplo}
+            disabled={loadingSample}
+            className="bg-white border border-brand-300 text-brand-700 px-4 py-2 rounded-lg text-sm
+                       font-medium hover:bg-brand-100 disabled:opacity-50 shrink-0"
+          >
+            {loadingSample ? 'A carregar...' : 'Usar fotos de exemplo'}
+          </button>
+        </div>
 
         {/* Guia de fotos */}
         <PhotoGuide />
