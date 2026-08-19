@@ -35,6 +35,9 @@ type Model = {
 export default function ModelPage({ params }: { params: { id: string } }) {
   const [model, setModel] = useState<Model | null>(null)
   const [toggling, setToggling] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [draftName, setDraftName] = useState('')
+  const [savingName, setSavingName] = useState(false)
   const supabase = createClientComponentClient()
 
   const load = useCallback(async () => {
@@ -52,6 +55,17 @@ export default function ModelPage({ params }: { params: { id: string } }) {
     return () => clearInterval(interval)
   }, [load, model?.status])
 
+  async function saveName() {
+    if (!model) return
+    const novo = draftName.trim()
+    if (!novo || novo === model.name) { setEditingName(false); return }
+    setSavingName(true)
+    const { error } = await supabase.from('models').update({ name: novo }).eq('id', model.id)
+    if (!error) setModel(prev => (prev ? { ...prev, name: novo } : prev))
+    setSavingName(false)
+    setEditingName(false)
+  }
+
   if (!model) return <div className="min-h-screen flex items-center justify-center text-gray-500">A carregar...</div>
 
   return (
@@ -64,7 +78,34 @@ export default function ModelPage({ params }: { params: { id: string } }) {
 
       <div className="max-w-6xl mx-auto px-8 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">{model.name}</h1>
+          {editingName ? (
+            <input
+              autoFocus
+              value={draftName}
+              disabled={savingName}
+              onChange={e => setDraftName(e.target.value)}
+              onBlur={saveName}
+              onKeyDown={e => {
+                if (e.key === 'Enter') saveName()
+                if (e.key === 'Escape') setEditingName(false)
+              }}
+              maxLength={60}
+              className="text-2xl font-bold bg-gray-800 border border-gray-600 rounded-lg px-3 py-1
+                         focus:outline-none focus:border-brand-500 disabled:opacity-50"
+            />
+          ) : (
+            <h1 className="text-2xl font-bold flex items-center gap-2 group">
+              {model.name}
+              <button
+                onClick={() => { setDraftName(model.name); setEditingName(true) }}
+                title="Mudar o nome"
+                aria-label="Mudar o nome"
+                className="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity text-base"
+              >
+                ✎
+              </button>
+            </h1>
+          )}
           {model.status === 'done' && model.model_url && (
             <div className="flex gap-3">
               <a
