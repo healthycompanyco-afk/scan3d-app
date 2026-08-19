@@ -55,7 +55,9 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-    INSERT INTO public.user_profiles (id) VALUES (NEW.id)
+    -- O idioma vem da metadata enviada no registo (seletor PT/EN do site)
+    INSERT INTO public.user_profiles (id, lang)
+    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'lang', 'pt'))
     ON CONFLICT (id) DO NOTHING;
     RETURN NEW;
 END;

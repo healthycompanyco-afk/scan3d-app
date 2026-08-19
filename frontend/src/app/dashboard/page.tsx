@@ -25,6 +25,7 @@ type Model = {
 type Profile = {
   plan: string
   models_this_month: number
+  lang?: string
 }
 
 const PLAN_LIMITS: Record<string, number> = { free: 3, creator: 25, pro: Infinity }
@@ -36,7 +37,7 @@ export default function DashboardPage() {
   const [justUpgraded, setJustUpgraded] = useState(false)
   const supabase = createClientComponentClient()
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
 
   useEffect(() => {
     async function load() {
@@ -45,7 +46,7 @@ export default function DashboardPage() {
 
       const nowIso = new Date().toISOString()
       const [{ data: profileData }, { data: modelsData }] = await Promise.all([
-        supabase.from('user_profiles').select('plan, models_this_month').eq('id', user.id).single(),
+        supabase.from('user_profiles').select('plan, models_this_month, lang').eq('id', user.id).single(),
         supabase.from('models').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ])
 
@@ -53,6 +54,12 @@ export default function DashboardPage() {
       // Esconde modelos já expirados (expires_at no passado)
       setModels((modelsData ?? []).filter(m => !m.expires_at || m.expires_at > nowIso))
       setLoading(false)
+
+      // Alinhar o idioma do perfil com o que a pessoa está mesmo a usar
+      // (cobre quem entrou com Google ou nunca tocou no seletor).
+      if (profileData && profileData.lang !== lang) {
+        supabase.from('user_profiles').update({ lang }).eq('id', user.id).then(() => {})
+      }
 
       // Email de boas-vindas (o backend garante que só envia uma vez)
       apiPost('/welcome').catch(() => {})
@@ -70,7 +77,7 @@ export default function DashboardPage() {
       }
     }
     load()
-  }, [supabase, router])
+  }, [supabase, router, lang])
 
   async function deleteModel(id: string) {
     await supabase.from('models').delete().eq('id', id)

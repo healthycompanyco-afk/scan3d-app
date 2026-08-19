@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const supabase = createClientComponentClient()
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -21,7 +21,13 @@ export default function LoginPage() {
     setMessage('')
 
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({ email, password })
+      // O idioma vai como metadata: o perfil ainda não existe nesta altura
+      // (só nasce quando o trigger corre), por isso não dá para gravar direto.
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { lang } },
+      })
       if (error) setMessage(error.message)
       else setMessage(t('login.checkEmail'))
     } else {
