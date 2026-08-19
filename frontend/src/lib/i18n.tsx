@@ -55,6 +55,8 @@ const dict: Record<string, { pt: string; en: string }> = {
   'login.checkEmail': { pt: 'Verifica o teu email para confirmar a conta.', en: 'Check your email to confirm your account.' },
   'login.legalPre': { pt: 'Ao criar conta aceitas os', en: 'By creating an account you accept the' },
   'login.legalAnd': { pt: 'e a', en: 'and the' },
+  'login.termsFull': { pt: 'Termos', en: 'Terms' },
+  'login.privacyFull': { pt: 'Política de Privacidade', en: 'Privacy Policy' },
 
   // ---- Dashboard ----
   'dash.loading': { pt: 'A carregar...', en: 'Loading...' },

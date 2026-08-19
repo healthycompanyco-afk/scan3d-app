@@ -119,8 +119,8 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           {t('login.legalPre')}{' '}
-          <a href="/terms" className="underline hover:text-gray-600">{t('nav.terms')}</a> {t('login.legalAnd')}{' '}
-          <a href="/privacy" className="underline hover:text-gray-600">{t('nav.privacy')}</a>.
+          <a href="/terms" className="underline hover:text-gray-600">{t('login.termsFull')}</a> {t('login.legalAnd')}{' '}
+          <a href="/privacy" className="underline hover:text-gray-600">{t('login.privacyFull')}</a>.
         </p>
       </div>
     </div>
