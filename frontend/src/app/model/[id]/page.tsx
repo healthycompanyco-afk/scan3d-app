@@ -38,6 +38,7 @@ export default function ModelPage({ params }: { params: { id: string } }) {
   const [editingName, setEditingName] = useState(false)
   const [draftName, setDraftName] = useState('')
   const [savingName, setSavingName] = useState(false)
+  const [copied, setCopied] = useState(false)
   const supabase = createClientComponentClient()
 
   const load = useCallback(async () => {
@@ -67,6 +68,9 @@ export default function ModelPage({ params }: { params: { id: string } }) {
   }
 
   if (!model) return <div className="min-h-screen flex items-center justify-center text-gray-500">A carregar...</div>
+
+  const origem = typeof window !== 'undefined' ? window.location.origin : 'https://snap3d.app'
+  const embedCode = `<iframe src="${origem}/embed/${model.id}" width="100%" height="480" style="border:0" allow="fullscreen"></iframe>`
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -186,37 +190,81 @@ export default function ModelPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* Toggle público / privado */}
+        {/* Usar na loja: partilha + código de incorporação */}
         {model.status === 'done' && (
-          <div className="mt-6 bg-gray-800 rounded-xl p-5 flex items-center justify-between">
-            <div>
-              <p className="font-semibold">Partilhar modelo</p>
-              <p className="text-gray-400 text-sm">Torna o modelo público para usar o widget embed na tua loja.</p>
-            </div>
-            <button
-              disabled={toggling}
-              onClick={async () => {
-                setToggling(true)
-                const newVal = !model.is_public
-                await supabase.from('models').update({ is_public: newVal }).eq('id', model.id)
-                setModel(prev => prev ? { ...prev, is_public: newVal } : prev)
-                setToggling(false)
-              }}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${model.is_public ? 'bg-brand-600' : 'bg-gray-600'}`}
-            >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${model.is_public ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
-          </div>
-        )}
+          <div className="mt-8 bg-gray-800 rounded-2xl p-6">
+            <h2 className="font-semibold text-lg">🛒 Usar na tua loja</h2>
+            <p className="text-gray-400 text-sm mt-1 mb-5">
+              Mostra este produto a rodar em 3D na tua loja online. Funciona em Shopify,
+              WooCommerce, Wix ou qualquer site onde possas colar HTML.
+            </p>
 
-        {/* Embed widget (e-commerce) */}
-        {model.status === 'done' && model.is_public && (
-          <div className="mt-8 bg-gray-800 rounded-xl p-6">
-            <h2 className="font-semibold mb-3">Incorporar na tua loja</h2>
-            <p className="text-gray-400 text-sm mb-3">Cola este código no HTML da página do teu produto:</p>
-            <code className="block bg-gray-900 rounded-lg p-4 text-sm text-green-400 break-all">
-              {`<iframe src="${typeof window !== 'undefined' ? window.location.origin : ''}/embed/${model.id}" width="100%" height="400" frameborder="0" allow="fullscreen" />`}
-            </code>
+            {/* Passo 1 — tornar público */}
+            <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-4">
+              <div>
+                <p className="font-medium text-sm">
+                  <span className="text-brand-400">1.</span> Ativar a partilha
+                </p>
+                <p className="text-gray-400 text-xs mt-0.5">
+                  Necessário para que os visitantes da tua loja consigam ver o modelo.
+                </p>
+              </div>
+              <button
+                disabled={toggling}
+                onClick={async () => {
+                  setToggling(true)
+                  const newVal = !model.is_public
+                  await supabase.from('models').update({ is_public: newVal }).eq('id', model.id)
+                  setModel(prev => prev ? { ...prev, is_public: newVal } : prev)
+                  setToggling(false)
+                }}
+                aria-label="Ativar partilha"
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${model.is_public ? 'bg-brand-600' : 'bg-gray-600'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${model.is_public ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* Passo 2 — copiar o código */}
+            <div className="border-t border-white/10 pt-4 mt-4">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <p className="font-medium text-sm">
+                  <span className="text-brand-400">2.</span> Copiar o código e colar na página do produto
+                </p>
+                {model.is_public && (
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(embedCode)
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 2000)
+                    }}
+                    className="text-xs bg-brand-600 hover:bg-brand-500 px-3 py-1.5 rounded-lg shrink-0"
+                  >
+                    {copied ? 'Copiado ✓' : 'Copiar código'}
+                  </button>
+                )}
+              </div>
+
+              {model.is_public ? (
+                <>
+                  <code className="block bg-gray-900 rounded-lg p-4 text-xs text-green-400 break-all">
+                    {embedCode}
+                  </code>
+                  <a
+                    href={`/embed/${model.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand-400 hover:text-brand-300 text-xs mt-3 inline-block"
+                  >
+                    Pré-visualizar como o cliente vê →
+                  </a>
+                </>
+              ) : (
+                <p className="text-gray-500 text-xs">
+                  Ativa a partilha acima para obteres o código.
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>

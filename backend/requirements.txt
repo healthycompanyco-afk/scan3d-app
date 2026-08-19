@@ -8,3 +8,5 @@ ffmpeg-python
 stripe>=15.5,<16
 python-jose[cryptography]
 python-dotenv
+# Monitorização de erros (ativa só se SENTRY_DSN estiver definido)
+sentry-sdk[fastapi]>=2,<3

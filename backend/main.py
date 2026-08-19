@@ -19,6 +19,21 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Monitorização de erros. Sem SENTRY_DSN definido não faz nada, por isso é
+# seguro em desenvolvimento e não obriga a conta para a app funcionar.
+SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+if SENTRY_DSN:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=os.environ.get("ENVIRONMENT", "production"),
+        traces_sample_rate=0.0,   # só erros; sem custos de performance
+        send_default_pii=False,   # não enviar dados pessoais dos utilizadores
+    )
+    logger.info("Sentry ativo.")
+else:
+    logger.info("Sentry inativo (SENTRY_DSN não definido).")
+
 app = FastAPI(title="Snap3D API")
 
 # CORS restrito ao frontend (produção + dev local).
