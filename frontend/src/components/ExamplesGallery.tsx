@@ -92,18 +92,6 @@ export default function ExamplesGallery() {
           ))}
         </div>
 
-        {/* Atribuição exigida pela licença CC BY 4.0 das fotos de demonstração */}
-        <p className="text-center text-[11px] text-gray-300 mt-8">
-          {t('gallery.credit')}{' '}
-          <a
-            href="https://creativecommons.org/licenses/by/4.0/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-gray-600"
-          >
-            CC BY 4.0
-          </a>
-        </p>
       </div>
 
       {/* Visualizador interativo (só carrega WebGL quando abres um exemplo) */}
