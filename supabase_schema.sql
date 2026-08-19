@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     stripe_customer_id  TEXT,                           -- ligação à Stripe (usado pelo webhook)
     plan_expires_at     TIMESTAMPTZ,                    -- não utilizado atualmente
     welcomed            BOOLEAN NOT NULL DEFAULT FALSE, -- email de boas-vindas já enviado
+    lang                TEXT NOT NULL DEFAULT 'pt',     -- idioma dos emails: pt | en
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

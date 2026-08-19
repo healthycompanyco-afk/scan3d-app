@@ -1,5 +1,6 @@
 'use client'
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 type Lang = 'pt' | 'en'
 
@@ -308,6 +309,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   function setLang(l: Lang) {
     setLangState(l)
     if (typeof window !== 'undefined') localStorage.setItem('lang', l)
+    // Guardar no perfil, para os emails saírem no mesmo idioma do site.
+    // Falha em silêncio se o utilizador não tiver sessão iniciada.
+    const supabase = createClientComponentClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        supabase.from('user_profiles').update({ lang: l }).eq('id', data.user.id).then(() => {})
+      }
+    })
   }
 
   const t = (k: string) => dict[k]?.[lang] ?? dict[k]?.pt ?? k

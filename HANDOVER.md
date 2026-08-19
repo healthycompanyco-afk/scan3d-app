@@ -88,6 +88,7 @@ frontend/          Next.js (deploy no Vercel, rootDir=frontend)
 | `stripe_customer_id` | ligação à Stripe; usado pelo webhook |
 | `plan_expires_at` | não utilizado atualmente |
 | `welcomed` | evita repetir o email de boas-vindas |
+| `lang` | idioma dos emails (`pt`/`en`), gravado quando o utilizador troca de idioma no site |
 
 ### `models`
 
@@ -193,6 +194,8 @@ A imagem do Modal levou várias tentativas a compilar. Cada uma destas linhas ex
 ### Emails
 
 São **dois sistemas**: o Supabase envia confirmação de conta e recuperação de password (SMTP personalizado apontado ao Resend); o backend envia boas-vindas e "modelo pronto". Mudar de fornecedor implica mexer nos dois sítios.
+
+Os emails do **backend** seguem a coluna `lang` do perfil (PT/EN). Os do **Supabase** usam um único template, definido no painel — não são por utilizador.
 
 ### Qualidade dos modelos
 

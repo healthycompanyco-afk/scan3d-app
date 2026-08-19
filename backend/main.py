@@ -77,6 +77,19 @@ class NotifyReadyRequest(BaseModel):
     model_id: str
 
 
+def _user_lang(sb, user_id: str) -> str:
+    """Idioma preferido do utilizador para emails.
+
+    Tolera a coluna `lang` não existir (instalações antigas) — nesse caso
+    assume português em vez de rebentar o envio.
+    """
+    try:
+        res = sb.table("user_profiles").select("lang").eq("id", user_id).single().execute()
+        return (res.data or {}).get("lang") or "pt"
+    except Exception:
+        return "pt"
+
+
 def _user_email(sb, user_id: str):
     try:
         res = sb.auth.admin.get_user_by_id(user_id)
@@ -216,7 +229,7 @@ async def welcome(user_id: str = Depends(get_user_id)):
         if profile.data and profile.data.get("welcomed"):
             return {"sent": False, "reason": "already welcomed"}
         email = _user_email(sb, user_id)
-        sent = send_welcome_email(email) if email else False
+        sent = send_welcome_email(email, _user_lang(sb, user_id)) if email else False
         # Só marca como 'welcomed' se o email foi mesmo enviado (senão tenta de novo)
         if sent:
             sb.table("user_profiles").update({"welcomed": True}).eq("id", user_id).execute()
@@ -234,9 +247,12 @@ async def notify_model_ready(req: NotifyReadyRequest):
         model = sb.table("models").select("name, user_id").eq("id", req.model_id).single().execute()
         if not model.data:
             return {"sent": False}
-        email = _user_email(sb, model.data["user_id"])
+        dono = model.data["user_id"]
+        email = _user_email(sb, dono)
         if email:
-            send_model_ready_email(email, model.data.get("name", "modelo"), req.model_id)
+            send_model_ready_email(
+                email, model.data.get("name", "modelo"), req.model_id, _user_lang(sb, dono)
+            )
         return {"sent": bool(email)}
     except Exception as e:
         logger.error(f"Erro em /notify-model-ready: {e}")
