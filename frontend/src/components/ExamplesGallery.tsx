@@ -93,7 +93,7 @@ export default function ExamplesGallery() {
         </div>
 
         {/* Atribuição exigida pela licença CC BY 4.0 das fotos de demonstração */}
-        <p className="text-center text-xs text-gray-400 mt-8">
+        <p className="text-center text-[11px] text-gray-300 mt-8">
           {t('gallery.credit')}{' '}
           <a
             href="https://creativecommons.org/licenses/by/4.0/"
