@@ -94,6 +94,8 @@ def health():
     return {
         "status": "ok",
         "stripe_sdk": getattr(_stripe, "VERSION", "desconhecida"),
+        "sentry": bool(SENTRY_DSN),
+        "emails": bool(os.environ.get("RESEND_API_KEY")),
     }
 
 
