@@ -1,88 +1,98 @@
 -- ============================================================
--- Scan3D — Esquema da base de dados (colar no Supabase SQL Editor)
+-- Snap3D — Esquema da base de dados (Supabase / Postgres)
+-- Reflete o estado em produção em agosto de 2026.
+-- Para uma instalação nova: colar tudo no SQL Editor.
 -- ============================================================
 
--- Perfil do utilizador (plano, contadores)
-CREATE TABLE user_profiles (
+-- ------------------------------------------------------------
+-- Perfil do utilizador
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_profiles (
     id                  UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    plan                TEXT NOT NULL DEFAULT 'free',         -- 'free' | 'creator' | 'pro'
+    plan                TEXT NOT NULL DEFAULT 'free',   -- free | creator | pro
     models_this_month   INT  NOT NULL DEFAULT 0,
-    stripe_customer_id  TEXT,
-    plan_expires_at     TIMESTAMPTZ,
+    models_reset_at     TIMESTAMPTZ,                    -- último reset mensal (feito em código)
+    stripe_customer_id  TEXT,                           -- ligação à Stripe (usado pelo webhook)
+    plan_expires_at     TIMESTAMPTZ,                    -- não utilizado atualmente
+    welcomed            BOOLEAN NOT NULL DEFAULT FALSE, -- email de boas-vindas já enviado
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ------------------------------------------------------------
 -- Modelos 3D
-CREATE TABLE models (
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS models (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     name          TEXT NOT NULL,
-    input_type    TEXT NOT NULL DEFAULT 'video',   -- 'video' | 'photos'
-    status        TEXT NOT NULL DEFAULT 'pending', -- pending | extracting | processing | done | error
+    input_type    TEXT NOT NULL DEFAULT 'ai_single',
+    status        TEXT NOT NULL DEFAULT 'pending', -- pending | processing | done | error
     frames_count  INT,
-    model_url     TEXT,   -- URL do .glb no Supabase Storage
-    obj_url       TEXT,   -- URL do .obj
-    stl_url       TEXT,   -- URL do .stl (apenas plano Pro)
-    is_public     BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- ficheiros produzidos pelo job do Modal
+    model_url     TEXT,   -- .glb  (malha com textura)
+    splat_url     TEXT,   -- .ply  (Gaussian Splatting, vista realista)
+    stl_url       TEXT,   -- .stl  (impressão 3D)
+    obj_url       TEXT,   -- legado; já não é preenchido
+    thumbnail_url TEXT,   -- render do modelo, fundo branco
+    source_url    TEXT,   -- cópia pública da 1ª foto de entrada (galeria)
+
+    watermark     BOOLEAN NOT NULL DEFAULT TRUE,  -- definido conforme o plano no /reconstruct
+    is_public     BOOLEAN NOT NULL DEFAULT FALSE, -- alimenta galeria e widget de embed
     error_msg     TEXT,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    expires_at    TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '30 days'
+    expires_at    TIMESTAMPTZ                     -- 30d free, 90d creator, NULL pro
 );
 
--- ============================================================
--- Segurança: Row Level Security
--- ============================================================
+CREATE INDEX IF NOT EXISTS models_user_idx   ON models (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS models_public_idx ON models (is_public, status);
 
+-- ------------------------------------------------------------
+-- Criar o perfil automaticamente quando nasce um utilizador
+-- ------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+    INSERT INTO public.user_profiles (id) VALUES (NEW.id)
+    ON CONFLICT (id) DO NOTHING;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ------------------------------------------------------------
+-- Row Level Security
+-- ------------------------------------------------------------
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE models ENABLE ROW LEVEL SECURITY;
+ALTER TABLE models        ENABLE ROW LEVEL SECURITY;
 
--- Utilizador vê e edita apenas o seu próprio perfil
+-- Cada utilizador só acede ao seu próprio perfil
+DROP POLICY IF EXISTS "user_own_profile" ON user_profiles;
 CREATE POLICY "user_own_profile" ON user_profiles
     FOR ALL USING (auth.uid() = id);
 
--- Utilizador vê apenas os seus próprios modelos
-CREATE POLICY "user_own_models" ON models
+-- Cada utilizador só acede aos seus próprios modelos
+DROP POLICY IF EXISTS "user_sees_own_models" ON models;
+CREATE POLICY "user_sees_own_models" ON models
     FOR ALL USING (auth.uid() = user_id);
 
--- Modelos públicos são visíveis a todos (para o embed widget)
-CREATE POLICY "public_models_read" ON models
-    FOR SELECT USING (is_public = TRUE);
+-- ⚠️ ESSENCIAL: sem esta política o widget de embed não funciona para os
+-- visitantes das lojas dos clientes, e a galeria pública fica vazia.
+DROP POLICY IF EXISTS "public_models_readable" ON models;
+CREATE POLICY "public_models_readable" ON models
+    FOR SELECT TO anon
+    USING (is_public = TRUE AND status = 'done');
 
--- ============================================================
--- Trigger: criar perfil automaticamente quando um utilizador se regista
--- ============================================================
-
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO user_profiles (id) VALUES (NEW.id);
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION handle_new_user();
-
--- ============================================================
--- Trigger: resetar contador mensal de modelos no início de cada mês
--- (usar com pg_cron — ativar em Supabase: Database → Extensions → pg_cron)
--- ============================================================
-
--- SELECT cron.schedule('reset-monthly-counts', '0 0 1 * *',
---     'UPDATE user_profiles SET models_this_month = 0'
--- );
-
--- ============================================================
--- Trigger: apagar modelos expirados (corre diariamente)
--- ============================================================
-
--- SELECT cron.schedule('delete-expired-models', '0 3 * * *',
---     'DELETE FROM models WHERE expires_at < NOW() AND status = ''done'''
--- );
-
--- ============================================================
--- Supabase Storage buckets (criar manualmente em Storage → New bucket)
--- ============================================================
--- Bucket "uploads"  → privado → guardar fotos/vídeos enviados pelos utilizadores
--- Bucket "models"   → público → guardar ficheiros .glb, .obj, .stl finais
+-- ------------------------------------------------------------
+-- Storage
+-- ------------------------------------------------------------
+-- Criar dois buckets no painel (Storage → Buckets):
+--   uploads  → PRIVADO  (fotos de entrada)
+--   models   → PÚBLICO  (.glb, .ply, .stl, miniaturas, foto de origem)
+--
+-- O backend e o job do Modal escrevem com a service key, que ignora o RLS.
