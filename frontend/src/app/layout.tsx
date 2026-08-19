@@ -5,7 +5,7 @@ import { I18nProvider } from '@/lib/i18n'
 
 const inter = Inter({ subsets: ['latin'] })
 
-const TITLE = 'Snap3D — Modelos 3D para E-commerce'
+const TITLE = 'Snap3D — Modelos 3D'
 const DESCRIPTION =
   'Tira 4-6 fotos do teu produto. A nossa IA gera um modelo 3D fotorrealista pronto para a tua loja em minutos.'
 
