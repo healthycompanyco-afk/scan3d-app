@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { apiPost } from '@/lib/api'
+import { useI18n } from '@/lib/i18n'
 
 /**
  * Botão que inicia o checkout do Stripe para um plano pago.
@@ -19,6 +20,7 @@ export default function CheckoutButton({
 }) {
   const supabase = createClientComponentClient()
   const router = useRouter()
+  const { t } = useI18n()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,7 +45,7 @@ export default function CheckoutButton({
       const { url } = await res.json()
       window.location.href = url
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao iniciar pagamento.')
+      setError(e instanceof Error ? e.message : t('plans.checkoutError'))
       setLoading(false)
     }
   }
@@ -55,7 +57,7 @@ export default function CheckoutButton({
         disabled={loading}
         className={`block w-full text-center py-3 rounded-xl font-semibold disabled:opacity-50 ${cls}`}
       >
-        {loading ? 'A abrir checkout...' : label}
+        {loading ? t('plans.checkoutOpening') : label}
       </button>
       {error && <p className="text-red-600 text-xs mt-2 text-center">{error}</p>}
     </div>

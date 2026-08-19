@@ -7,6 +7,8 @@ import ModelCard from '@/components/ModelCard'
 import UsageBar from '@/components/UsageBar'
 import Logo from '@/components/Logo'
 import { apiPost } from '@/lib/api'
+import { useI18n } from '@/lib/i18n'
+import LanguageToggle from '@/components/LanguageToggle'
 
 type Model = {
   id: string
@@ -34,6 +36,7 @@ export default function DashboardPage() {
   const [justUpgraded, setJustUpgraded] = useState(false)
   const supabase = createClientComponentClient()
   const router = useRouter()
+  const { t } = useI18n()
 
   useEffect(() => {
     async function load() {
@@ -89,7 +92,7 @@ export default function DashboardPage() {
     }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">A carregar...</div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">{t('dash.loading')}</div>
 
   const limit = PLAN_LIMITS[profile?.plan ?? 'free']
   const used = profile?.models_this_month ?? 0
@@ -99,10 +102,11 @@ export default function DashboardPage() {
       <nav className="bg-white border-b px-8 py-4 flex justify-between items-center">
         <Link href="/"><Logo height={32} /></Link>
         <div className="flex gap-4 items-center">
-          <Link href="/pricing" className="text-sm text-gray-600 hover:text-gray-900">Planos</Link>
-          <button onClick={logout} className="text-sm text-gray-600 hover:text-gray-900">Sair</button>
+          <LanguageToggle />
+          <Link href="/pricing" className="text-sm text-gray-600 hover:text-gray-900">{t('dash.plans')}</Link>
+          <button onClick={logout} className="text-sm text-gray-600 hover:text-gray-900">{t('dash.logout')}</button>
           <Link href="/upload" className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-brand-500">
-            + Novo modelo
+            {t('dash.newModel')}
           </Link>
         </div>
       </nav>
@@ -112,10 +116,9 @@ export default function DashboardPage() {
           <div className="mb-6 rounded-xl border border-green-200 bg-green-50 px-5 py-4 flex items-start gap-3">
             <span className="text-green-600 text-lg leading-none">✓</span>
             <div>
-              <p className="font-semibold text-green-900">Pagamento recebido. Obrigado!</p>
+              <p className="font-semibold text-green-900">{t('dash.paidTitle')}</p>
               <p className="text-green-800 text-sm mt-0.5">
-                O teu plano é ativado em poucos segundos. Os modelos novos deixam de ter marca de água.
-                Recebes o recibo por email da Stripe.
+                {t('dash.paidBody')}
               </p>
             </div>
           </div>
@@ -123,14 +126,14 @@ export default function DashboardPage() {
 
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold">Os meus modelos</h1>
+            <h1 className="text-2xl font-bold">{t('dash.title')}</h1>
             <p className="text-gray-500 text-sm mt-1">
-              Plano: <span className="font-semibold capitalize">{profile?.plan ?? 'free'}</span>
+              {t('dash.plan')} <span className="font-semibold capitalize">{profile?.plan ?? 'free'}</span>
               {(profile?.plan ?? 'free') === 'free' ? (
-                <Link href="/pricing" className="ml-3 text-brand-600 hover:underline font-medium">Fazer upgrade →</Link>
+                <Link href="/pricing" className="ml-3 text-brand-600 hover:underline font-medium">{t('dash.upgrade')}</Link>
               ) : (
                 <button onClick={manageSubscription} className="ml-3 text-brand-600 hover:underline font-medium">
-                  Gerir subscrição
+                  {t('dash.manageSub')}
                 </button>
               )}
             </p>
@@ -140,8 +143,8 @@ export default function DashboardPage() {
 
         {models.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
-            <p className="text-lg">Ainda não tens modelos.</p>
-            <Link href="/upload" className="text-brand-600 hover:underline mt-2 inline-block">Criar o primeiro modelo →</Link>
+            <p className="text-lg">{t('dash.empty')}</p>
+            <Link href="/upload" className="text-brand-600 hover:underline mt-2 inline-block">{t('dash.createFirst')}</Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

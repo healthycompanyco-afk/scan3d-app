@@ -1,11 +1,13 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { useI18n } from '@/lib/i18n'
 
 /**
  * Visualizador de Gaussian Splatting (.ply do TRELLIS).
  * Preserva cores reais e brilho dependente do ângulo de visão.
  */
 export default function SplatViewer({ url }: { url: string }) {
+  const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -64,8 +66,8 @@ export default function SplatViewer({ url }: { url: string }) {
   if (error) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-gray-800 text-gray-400">
-        <p className="font-semibold text-red-400">Não foi possível carregar a vista realista</p>
-        <p className="text-sm mt-1">Tenta a vista de malha (GLB).</p>
+        <p className="font-semibold text-red-400">{t('model.splatError')}</p>
+        <p className="text-sm mt-1">{t('model.splatErrorHint')}</p>
       </div>
     )
   }
@@ -75,7 +77,7 @@ export default function SplatViewer({ url }: { url: string }) {
       {loading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-800 z-10">
           <div className="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-gray-300 text-sm">A carregar vista realista...</p>
+          <p className="text-gray-300 text-sm">{t('model.splatLoading')}</p>
         </div>
       )}
       <div ref={containerRef} className="w-full h-full" />

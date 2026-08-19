@@ -4,8 +4,10 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import ModelViewer from '@/components/ModelViewer'
 import SplatViewer from '@/components/SplatViewer'
 import Watermark from '@/components/Watermark'
+import { useI18n } from '@/lib/i18n'
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
+  const { t } = useI18n()
   const [modelUrl, setModelUrl] = useState<string | null>(null)
   const [splatUrl, setSplatUrl] = useState<string | null>(null)
   const [watermark, setWatermark] = useState(false)
@@ -32,7 +34,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   if (error) {
     return (
       <div style={{ width: '100%', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', color: '#888', fontFamily: 'sans-serif' }}>
-        Modelo não disponível
+        {t('model.unavailable')}
       </div>
     )
   }

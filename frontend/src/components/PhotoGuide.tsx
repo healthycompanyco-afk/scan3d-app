@@ -1,5 +1,6 @@
 'use client'
 import { ReactNode } from 'react'
+import { useI18n } from '@/lib/i18n'
 
 /**
  * Guia visual de como fotografar o produto para obter o melhor modelo 3D.
@@ -7,12 +8,12 @@ import { ReactNode } from 'react'
  */
 
 const ANGLES = [
-  { emoji: '📸', label: 'Frente' },
-  { emoji: '↩️', label: 'Lado esq.' },
-  { emoji: '↪️', label: 'Lado dir.' },
-  { emoji: '🔄', label: 'Trás' },
-  { emoji: '⬆️', label: 'De cima' },
-  { emoji: '⬇️', label: 'De baixo' },
+  { emoji: '📸', key: 'guide.front' },
+  { emoji: '↩️', key: 'guide.left' },
+  { emoji: '↪️', key: 'guide.right' },
+  { emoji: '🔄', key: 'guide.back' },
+  { emoji: '⬆️', key: 'guide.top' },
+  { emoji: '⬇️', key: 'guide.bottom' },
 ]
 
 /** Moldura de "foto" com um veredicto (bom/mau) */
@@ -51,6 +52,7 @@ function Product({ x = 50, y = 50, s = 1, blur = false }: { x?: number; y?: numb
 }
 
 export default function PhotoGuide() {
+  const { t } = useI18n()
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6">
       <svg width="0" height="0">
@@ -59,10 +61,9 @@ export default function PhotoGuide() {
         </defs>
       </svg>
 
-      <h2 className="text-lg font-bold text-gray-900 mb-1">📷 Como tirar as fotos perfeitas</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-1">{t('guide.title')}</h2>
       <p className="text-gray-500 text-sm mb-5">
-        Tira <strong>4 a 6 fotos</strong> do mesmo produto, dando a volta. Quanto melhores as fotos,
-        melhor o modelo 3D.
+        {t('guide.intro')}
       </p>
 
       {/* Diagrama de ângulos */}
@@ -76,35 +77,35 @@ export default function PhotoGuide() {
           const x = Math.cos(angle) * radius
           const y = Math.sin(angle) * radius
           return (
-            <div key={a.label} className="absolute flex flex-col items-center" style={{ transform: `translate(${x}px, ${y}px)` }}>
+            <div key={a.key} className="absolute flex flex-col items-center" style={{ transform: `translate(${x}px, ${y}px)` }}>
               <div className="w-9 h-9 bg-white border border-gray-300 rounded-full flex items-center justify-center text-base shadow-sm">
                 {a.emoji}
               </div>
-              <span className="text-[10px] text-gray-600 mt-0.5 font-medium whitespace-nowrap">{a.label}</span>
+              <span className="text-[10px] text-gray-600 mt-0.5 font-medium whitespace-nowrap">{t(a.key)}</span>
             </div>
           )
         })}
       </div>
 
       {/* Exemplos ilustrados: bom vs mau */}
-      <p className="text-sm font-semibold text-gray-800 mb-3">Exemplos: à esquerda o certo ✓, à direita o errado ✕</p>
+      <p className="text-sm font-semibold text-gray-800 mb-3">{t('guide.examples')}</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-5 mb-6">
         {/* Tamanho */}
-        <Shot good label="Produto grande e centrado">
+        <Shot good label={t('guide.egBig')}>
           <rect width={100} height={100} fill="#f1f5f9" />
           <Product x={50} y={52} s={1.4} />
         </Shot>
-        <Shot good={false} label="Produto pequeno e ao canto">
+        <Shot good={false} label={t('guide.egSmall')}>
           <rect width={100} height={100} fill="#f1f5f9" />
           <Product x={30} y={64} s={0.55} />
         </Shot>
 
         {/* Fundo */}
-        <Shot good label="Fundo simples e liso">
+        <Shot good label={t('guide.egPlain')}>
           <rect width={100} height={100} fill="#f8fafc" />
           <Product x={50} y={54} s={1.2} />
         </Shot>
-        <Shot good={false} label="Fundo confuso">
+        <Shot good={false} label={t('guide.egBusy')}>
           <rect width={100} height={100} fill="#e2e8f0" />
           <circle cx={18} cy={20} r={9} fill="#fca5a5" />
           <rect x={70} y={12} width={20} height={16} fill="#fcd34d" />
@@ -114,11 +115,11 @@ export default function PhotoGuide() {
         </Shot>
 
         {/* Foco */}
-        <Shot good label="Foto nítida e focada">
+        <Shot good label={t('guide.egSharp')}>
           <rect width={100} height={100} fill="#f1f5f9" />
           <Product x={50} y={52} s={1.3} />
         </Shot>
-        <Shot good={false} label="Foto tremida / desfocada">
+        <Shot good={false} label={t('guide.egBlur')}>
           <rect width={100} height={100} fill="#f1f5f9" />
           <Product x={50} y={52} s={1.3} blur />
         </Shot>
@@ -127,23 +128,23 @@ export default function PhotoGuide() {
       {/* Boas vs más práticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-green-50 rounded-xl p-4">
-          <p className="font-semibold text-green-800 text-sm mb-2">✅ Faz</p>
+          <p className="font-semibold text-green-800 text-sm mb-2">{t('guide.do')}</p>
           <ul className="space-y-1 text-sm text-green-900">
-            <li>• Fundo simples e liso (parede branca)</li>
-            <li>• Luz forte e difusa (sem sombras duras)</li>
-            <li>• Produto a ocupar &gt;70% da foto</li>
-            <li>• Fotos nítidas e focadas</li>
-            <li>• Mesma distância em todas as fotos</li>
+            <li>• {t('guide.do1')}</li>
+            <li>• {t('guide.do2')}</li>
+            <li>• {t('guide.do3')}</li>
+            <li>• {t('guide.do4')}</li>
+            <li>• {t('guide.do5')}</li>
           </ul>
         </div>
         <div className="bg-red-50 rounded-xl p-4">
-          <p className="font-semibold text-red-800 text-sm mb-2">❌ Evita</p>
+          <p className="font-semibold text-red-800 text-sm mb-2">{t('guide.dont')}</p>
           <ul className="space-y-1 text-sm text-red-900">
-            <li>• Fotos tremidas ou desfocadas</li>
-            <li>• Objetos transparentes ou de vidro</li>
-            <li>• Superfícies muito brilhantes/espelhadas</li>
-            <li>• Fundos confusos ou com muitos objetos</li>
-            <li>• Sombras fortes ou contraluz</li>
+            <li>• {t('guide.dont1')}</li>
+            <li>• {t('guide.dont2')}</li>
+            <li>• {t('guide.dont3')}</li>
+            <li>• {t('guide.dont4')}</li>
+            <li>• {t('guide.dont5')}</li>
           </ul>
         </div>
       </div>

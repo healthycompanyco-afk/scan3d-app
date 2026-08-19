@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
+import { useI18n } from '@/lib/i18n'
+import LanguageToggle from '@/components/LanguageToggle'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -11,6 +13,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const supabase = createClientComponentClient()
   const router = useRouter()
+  const { t } = useI18n()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -20,7 +23,7 @@ export default function LoginPage() {
     if (isSignUp) {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) setMessage(error.message)
-      else setMessage('Verifica o teu email para confirmar a conta.')
+      else setMessage(t('login.checkEmail'))
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setMessage(error.message)
@@ -44,12 +47,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md relative">
+        <div className="absolute top-4 right-4"><LanguageToggle /></div>
         <h1 className="text-2xl font-bold text-center mb-2">
-          {isSignUp ? 'Criar conta' : 'Entrar'}
+          {isSignUp ? t('login.signupTitle') : t('login.signinTitle')}
         </h1>
         <p className="text-gray-500 text-center text-sm mb-6">
-          {isSignUp ? 'Começa com 3 modelos grátis por mês.' : 'Bem-vindo de volta.'}
+          {isSignUp ? t('login.signupSub') : t('login.signinSub')}
         </p>
 
         {/* Login com Google */}
@@ -64,12 +68,12 @@ export default function LoginPage() {
             <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
             <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
           </svg>
-          Continuar com Google
+          {t('login.google')}
         </button>
 
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">ou com email</span>
+          <span className="text-xs text-gray-400">{t('login.orEmail')}</span>
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
@@ -85,7 +89,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('login.password')}</label>
             <input
               type="password"
               value={password}
@@ -102,21 +106,21 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-brand-600 text-white py-2 rounded-lg font-semibold hover:bg-brand-500 disabled:opacity-50"
           >
-            {loading ? 'A processar...' : isSignUp ? 'Criar conta' : 'Entrar'}
+            {loading ? t('login.processing') : isSignUp ? t('login.signupTitle') : t('login.signinTitle')}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-4">
-          {isSignUp ? 'Já tens conta?' : 'Não tens conta?'}{' '}
+          {isSignUp ? t('login.haveAccount') : t('login.noAccount')}{' '}
           <button onClick={() => setIsSignUp(!isSignUp)} className="text-brand-600 hover:underline">
-            {isSignUp ? 'Entrar' : 'Criar conta grátis'}
+            {isSignUp ? t('login.signinTitle') : t('login.createFree')}
           </button>
         </p>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Ao criar conta aceitas os{' '}
-          <a href="/terms" className="underline hover:text-gray-600">Termos</a> e a{' '}
-          <a href="/privacy" className="underline hover:text-gray-600">Política de Privacidade</a>.
+          {t('login.legalPre')}{' '}
+          <a href="/terms" className="underline hover:text-gray-600">{t('nav.terms')}</a> {t('login.legalAnd')}{' '}
+          <a href="/privacy" className="underline hover:text-gray-600">{t('nav.privacy')}</a>.
         </p>
       </div>
     </div>

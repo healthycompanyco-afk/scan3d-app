@@ -1,4 +1,6 @@
+'use client'
 import Link from 'next/link'
+import { useI18n } from '@/lib/i18n'
 import StatusBadge from './StatusBadge'
 
 type Model = {
@@ -13,6 +15,7 @@ type Model = {
 }
 
 export default function ModelCard({ model, onDelete }: { model: Model; onDelete: (id: string) => void }) {
+  const { lang, t } = useI18n()
   const expiresAt = new Date(model.expires_at)
   const daysLeft = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
 
@@ -38,11 +41,11 @@ export default function ModelCard({ model, onDelete }: { model: Model; onDelete:
       </div>
 
       <p className="text-xs text-gray-400 mb-4">
-        Criado em {new Date(model.created_at).toLocaleDateString('pt-PT')}
+        {t('card.created')} {new Date(model.created_at).toLocaleDateString(lang === 'pt' ? 'pt-PT' : 'en-GB')}
       </p>
 
       {daysLeft <= 7 && model.status === 'done' && (
-        <p className="text-xs text-orange-500 mb-3">⚠ Expira em {daysLeft} dias</p>
+        <p className="text-xs text-orange-500 mb-3">⚠ {t('card.expires')} {daysLeft} {t('card.days')}</p>
       )}
 
       <div className="flex gap-2">
@@ -51,18 +54,18 @@ export default function ModelCard({ model, onDelete }: { model: Model; onDelete:
             href={`/model/${model.id}`}
             className="flex-1 text-center text-sm bg-brand-600 text-white py-1.5 rounded-lg hover:bg-brand-500"
           >
-            Ver modelo
+            {t('card.view')}
           </Link>
         )}
         {model.status === 'pending' || model.status === 'processing' || model.status === 'extracting' ? (
           <Link href={`/model/${model.id}`} className="flex-1 text-center text-sm border border-gray-300 text-gray-600 py-1.5 rounded-lg">
-            Ver progresso
+            {t('card.progress')}
           </Link>
         ) : null}
         <button
           onClick={() => onDelete(model.id)}
           className="text-sm text-red-400 hover:text-red-600 px-2"
-          title="Apagar modelo"
+          title={t('card.delete')}
         >
           🗑
         </button>

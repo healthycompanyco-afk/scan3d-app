@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import PhotoGuide from '@/components/PhotoGuide'
 import Logo from '@/components/Logo'
 import { apiPost } from '@/lib/api'
+import { useI18n } from '@/lib/i18n'
+import LanguageToggle from '@/components/LanguageToggle'
 
 export default function UploadPage() {
   const [name, setName] = useState('')
@@ -14,6 +16,7 @@ export default function UploadPage() {
   const [loadingSample, setLoadingSample] = useState(false)
   const supabase = createClientComponentClient()
   const router = useRouter()
+  const { t } = useI18n()
 
   /** Carrega um conjunto de fotos de demonstração, para quem quer ver o
    *  resultado antes de ir fotografar o próprio produto. */
@@ -30,9 +33,9 @@ export default function UploadPage() {
         })
       )
       setFiles(ficheiros)
-      if (!name.trim()) setName('Sapato (exemplo)')
+      if (!name.trim()) setName(t('up.sampleName'))
     } catch {
-      setError('Não foi possível carregar as fotos de exemplo.')
+      setError(t('up.errSample'))
     }
     setLoadingSample(false)
   }
@@ -43,9 +46,9 @@ export default function UploadPage() {
   }
 
   async function handleSubmit() {
-    if (!name.trim()) { setError('Dá um nome ao produto.'); return }
-    if (files.length === 0) { setError('Carrega pelo menos 1 foto.'); return }
-    if (files.length > 6) { setError('Máximo 6 fotos.'); return }
+    if (!name.trim()) { setError(t('up.errName')); return }
+    if (files.length === 0) { setError(t('up.errNoPhotos')); return }
+    if (files.length > 6) { setError(t('up.errMax')); return }
 
     setUploading(true)
     setError('')
@@ -79,29 +82,30 @@ export default function UploadPage() {
 
       router.push(`/model/${model.id}`)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao fazer upload.')
+      setError(e instanceof Error ? e.message : t('up.errUpload'))
       setUploading(false)
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b px-8 py-4">
+      <nav className="bg-white border-b px-8 py-4 flex items-center justify-between">
         <Logo height={32} />
+        <LanguageToggle />
       </nav>
 
       <div className="max-w-2xl mx-auto px-8 py-10">
-        <h1 className="text-2xl font-bold mb-2">Novo modelo 3D</h1>
+        <h1 className="text-2xl font-bold mb-2">{t('up.title')}</h1>
         <p className="text-gray-500 text-sm mb-8">
-          Carrega 4 a 6 fotos do teu produto e geramos um modelo 3D fotorrealista.
+          {t('up.subtitle')}
         </p>
 
         {/* Atalho: experimentar sem ter de ir fotografar */}
         <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 px-5 py-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="font-semibold text-brand-900 text-sm">Ainda não tens fotos?</p>
+            <p className="font-semibold text-brand-900 text-sm">{t('up.sampleTitle')}</p>
             <p className="text-brand-800 text-sm">
-              Experimenta com um produto de demonstração e vê o resultado em minutos.
+              {t('up.sampleBody')}
             </p>
           </div>
           <button
@@ -110,7 +114,7 @@ export default function UploadPage() {
             className="bg-white border border-brand-300 text-brand-700 px-4 py-2 rounded-lg text-sm
                        font-medium hover:bg-brand-100 disabled:opacity-50 shrink-0"
           >
-            {loadingSample ? 'A carregar...' : 'Usar fotos de exemplo'}
+            {loadingSample ? t('up.sampleLoading') : t('up.sampleBtn')}
           </button>
         </div>
 
@@ -119,12 +123,12 @@ export default function UploadPage() {
 
         {/* Nome */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nome do produto</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('up.nameLabel')}</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Ex: Ténis Nike Air Max"
+            placeholder={t('up.namePlaceholder')}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
@@ -143,15 +147,15 @@ export default function UploadPage() {
             {files.length > 0 ? (
               <div>
                 <p className="text-green-600 font-semibold">
-                  ✓ {files.length} {files.length === 1 ? 'foto selecionada' : 'fotos selecionadas'}
+                  ✓ {files.length} {files.length === 1 ? t('up.selected1') : t('up.selectedN')}
                 </p>
-                <p className="text-gray-400 text-sm mt-1">Clica para mudar a seleção</p>
+                <p className="text-gray-400 text-sm mt-1">{t('up.changeSelection')}</p>
               </div>
             ) : (
               <div>
                 <p className="text-4xl mb-2">🖼️</p>
-                <p className="font-semibold text-gray-700">Clica para escolher 4 a 6 fotos</p>
-                <p className="text-gray-400 text-sm mt-1">Vários ângulos do mesmo produto · JPG, PNG ou WEBP</p>
+                <p className="font-semibold text-gray-700">{t('up.pickPhotos')}</p>
+                <p className="text-gray-400 text-sm mt-1">{t('up.pickHint')}</p>
               </div>
             )}
           </label>
@@ -175,7 +179,7 @@ export default function UploadPage() {
 
         {files.length === 1 && (
           <p className="text-amber-600 text-sm mt-3">
-            💡 Só 1 foto funciona, mas com 4-6 fotos de ângulos diferentes o modelo fica muito melhor.
+            💡 {t('up.onePhotoHint')}
           </p>
         )}
 
@@ -186,7 +190,7 @@ export default function UploadPage() {
           disabled={uploading || files.length === 0}
           className="w-full bg-brand-600 text-white py-3 rounded-xl font-semibold mt-6 hover:bg-brand-500 disabled:opacity-50"
         >
-          {uploading ? 'A enviar...' : 'Gerar modelo 3D →'}
+          {uploading ? t('up.sending') : t('up.submit')}
         </button>
       </div>
     </div>
