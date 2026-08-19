@@ -27,7 +27,7 @@ const dict: Record<string, { pt: string; en: string }> = {
   'visual.front': { pt: 'Frente', en: 'Front' },
   'visual.side': { pt: 'Lado', en: 'Side' },
   'visual.back': { pt: 'Trás', en: 'Back' },
-  'visual.ai': { pt: 'IA', en: 'AI' },
+  'visual.ai': { pt: 'Snap3D', en: 'Snap3D' },
   'visual.model': { pt: 'Modelo 3D', en: '3D model' },
 
   // Galeria de exemplos
@@ -52,7 +52,7 @@ const dict: Record<string, { pt: string; en: string }> = {
   'benefits.fast.title': { pt: 'Rápido', en: 'Fast' },
   'benefits.fast.desc': { pt: 'Do upload ao modelo 3D em poucos minutos. Sem esperas longas nem processos complicados.', en: 'From upload to 3D model in minutes. No long waits or complicated processes.' },
   'benefits.real.title': { pt: 'Fotorrealista', en: 'Photorealistic' },
-  'benefits.real.desc': { pt: 'IA de última geração que captura cores e brilho reais — qualidade de e-commerce.', en: 'State-of-the-art AI that captures real colors and shine — e-commerce quality.' },
+  'benefits.real.desc': { pt: 'Tecnologia de última geração que captura cores e brilho reais — qualidade de e-commerce.', en: 'State-of-the-art technology that captures real colors and shine — e-commerce quality.' },
   'benefits.phone.title': { pt: 'Só precisas do telemóvel', en: 'Just your phone' },
   'benefits.phone.desc': { pt: 'Sem scanners caros nem software técnico. Bastam fotos normais do produto.', en: 'No expensive scanners or technical software. Just regular product photos.' },
 
@@ -60,8 +60,8 @@ const dict: Record<string, { pt: string; en: string }> = {
   'how.title': { pt: 'Como funciona', en: 'How it works' },
   'how.s1.title': { pt: 'Tira as fotos', en: 'Take the photos' },
   'how.s1.desc': { pt: 'Fotografa o produto de 4 a 6 ângulos diferentes. Temos um guia visual para te ajudar a tirar fotos perfeitas.', en: 'Photograph the product from 4 to 6 different angles. We have a visual guide to help you take perfect photos.' },
-  'how.s2.title': { pt: 'A IA gera o 3D', en: 'AI generates the 3D' },
-  'how.s2.desc': { pt: 'A nossa IA combina as fotos e reconstrói o produto em 3D, com texturas e cores reais.', en: 'Our AI combines the photos and reconstructs the product in 3D, with real textures and colors.' },
+  'how.s2.title': { pt: 'Geramos o modelo 3D', en: 'We generate the 3D' },
+  'how.s2.desc': { pt: 'Combinamos as fotos e reconstruímos o produto em 3D, com texturas e cores reais.', en: 'We combine the photos and reconstruct the product in 3D, with real textures and colors.' },
   'how.s3.title': { pt: 'Usa em qualquer lado', en: 'Use it anywhere' },
   'how.s3.desc': { pt: 'Vê no browser, descarrega (.glb, .obj, .stl para impressão 3D) ou incorpora na tua loja com um widget.', en: 'View in the browser, download (.glb, .obj, .stl for 3D printing) or embed in your store with a widget.' },
 
@@ -94,7 +94,7 @@ const dict: Record<string, { pt: string; en: string }> = {
   'faq.q4': { pt: 'Posso usar os modelos na minha loja online?', en: 'Can I use the models in my online store?' },
   'faq.a4': { pt: 'Sim! Tens um widget para incorporar o modelo 3D em qualquer site. O plano Pro inclui também uso comercial.', en: 'Yes! There\'s a widget to embed the 3D model on any website. The Pro plan also includes commercial use.' },
   'faq.q5': { pt: 'Que tipo de produtos funcionam melhor?', en: 'What kind of products work best?' },
-  'faq.a5': { pt: 'Produtos sólidos e foscos, bem iluminados, com fundo simples. Objetos transparentes ou muito brilhantes são mais difíceis para a IA.', en: 'Solid, matte products, well lit, with a simple background. Transparent or very shiny objects are harder for the AI.' },
+  'faq.a5': { pt: 'Produtos sólidos e foscos, bem iluminados, com fundo simples. Objetos transparentes ou muito brilhantes são mais difíceis de reconstruir.', en: 'Solid, matte products, well lit, with a simple background. Transparent or very shiny objects are harder to reconstruct.' },
   'faq.q6': { pt: 'É mesmo grátis?', en: 'Is it really free?' },
   'faq.a6': { pt: 'Sim, o plano Explorer dá-te 3 modelos por mês de graça, sem cartão. Só pagas se quiseres mais modelos ou tirar a marca de água.', en: 'Yes, the Explorer plan gives you 3 free models per month, no card. You only pay for more models or to remove the watermark.' },
 

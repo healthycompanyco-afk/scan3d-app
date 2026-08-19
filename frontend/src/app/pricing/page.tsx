@@ -20,7 +20,7 @@ const plans: {
     name: 'Explorer',
     price: 'Grátis',
     period: '',
-    features: ['3 modelos/mês', 'Modelos expiram em 30 dias', 'Até 6 fotos por modelo', 'IA fotorrealista (TRELLIS)'],
+    features: ['3 modelos/mês', 'Modelos expiram em 30 dias', 'Até 6 fotos por modelo', 'Modelos 3D fotorrealistas'],
     downloads: ['.glb'],
     watermark: 'Com marca de água Snap3D',
     cta: 'Começar grátis',

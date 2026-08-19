@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 const TITLE = 'Snap3D — Modelos 3D'
 const DESCRIPTION =
-  'Tira 4-6 fotos do teu produto. A nossa IA gera um modelo 3D fotorrealista pronto para a tua loja em minutos.'
+  'Tira 4-6 fotos do teu produto e recebe um modelo 3D fotorrealista pronto para a tua loja em minutos.'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://snap3d.app'),

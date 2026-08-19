@@ -70,7 +70,7 @@ export default function UploadPage() {
       <div className="max-w-2xl mx-auto px-8 py-10">
         <h1 className="text-2xl font-bold mb-2">Novo modelo 3D</h1>
         <p className="text-gray-500 text-sm mb-8">
-          Carrega 4 a 6 fotos do teu produto e a nossa IA gera um modelo 3D fotorrealista.
+          Carrega 4 a 6 fotos do teu produto e geramos um modelo 3D fotorrealista.
         </p>
 
         {/* Guia de fotos */}
