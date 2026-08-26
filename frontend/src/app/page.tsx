@@ -181,8 +181,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             {[
               { name: 'Explorer', price: t('pricing.free'), period: '', models: t('pricing.modelsFree'), highlight: false },
-              { name: 'Creator', price: '€8', period: '/mês', models: t('pricing.modelsCreator'), highlight: true },
-              { name: 'Pro', price: '€20', period: '/mês', models: t('pricing.modelsPro'), highlight: false },
+              { name: 'Creator', price: '€8', period: t('plans.month'), models: t('pricing.modelsCreator'), highlight: true },
+              { name: 'Pro', price: '€20', period: t('plans.month'), models: t('pricing.modelsPro'), highlight: false },
             ].map(({ name, price, period, models, highlight }) => (
               <div
                 key={name}

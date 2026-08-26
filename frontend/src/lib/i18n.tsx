@@ -224,6 +224,8 @@ const dict: Record<string, { pt: string; en: string }> = {
   'plans.cta.creator': { pt: 'Subscrever Creator', en: 'Subscribe to Creator' },
   'plans.cta.pro': { pt: 'Subscrever Pro', en: 'Subscribe to Pro' },
   'plans.month': { pt: '/mês', en: '/mo' },
+  // Só aparece em inglês: quem paga fora da zona euro vê a conversão no checkout
+  'plans.fx': { pt: '', en: 'Billed in EUR — your local currency is shown at checkout.' },
   'plans.checkoutOpening': { pt: 'A abrir checkout...', en: 'Opening checkout...' },
   'plans.checkoutError': { pt: 'Erro ao iniciar pagamento.', en: 'Could not start payment.' },
 

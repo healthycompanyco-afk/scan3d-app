@@ -50,7 +50,7 @@ const PLANS: {
 ]
 
 export default function PricingPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,6 +85,9 @@ export default function PricingPage() {
                   {plan.id === 'free' ? t('pricing.free') : plan.price}
                 </span>
                 {plan.showPeriod && <span className="text-gray-500">{t('plans.month')}</span>}
+                {plan.showPeriod && lang === 'en' && (
+                  <p className="text-xs text-gray-400 mt-2 leading-snug">{t('plans.fx')}</p>
+                )}
               </div>
 
               <ul className="space-y-3 text-sm text-gray-600 mb-8 flex-1">
