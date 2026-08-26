@@ -39,14 +39,16 @@ CREATE TABLE IF NOT EXISTS models (
     source_url    TEXT,   -- cópia pública da 1ª foto de entrada (galeria)
 
     watermark     BOOLEAN NOT NULL DEFAULT TRUE,  -- definido conforme o plano no /reconstruct
-    is_public     BOOLEAN NOT NULL DEFAULT FALSE, -- alimenta galeria e widget de embed
+    is_public     BOOLEAN NOT NULL DEFAULT FALSE, -- link partilhavel e widget de embed
+    gallery       BOOLEAN NOT NULL DEFAULT FALSE, -- mostrar na galeria da pagina inicial (curadoria manual)
     error_msg     TEXT,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at    TIMESTAMPTZ                     -- 30d free, 90d creator, NULL pro
 );
 
 CREATE INDEX IF NOT EXISTS models_user_idx   ON models (user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS models_public_idx ON models (is_public, status);
+CREATE INDEX IF NOT EXISTS models_public_idx  ON models (is_public, status);
+CREATE INDEX IF NOT EXISTS models_gallery_idx ON models (gallery, status);
 
 -- ------------------------------------------------------------
 -- Criar o perfil automaticamente quando nasce um utilizador

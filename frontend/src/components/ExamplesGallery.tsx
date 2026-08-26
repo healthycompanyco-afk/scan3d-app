@@ -29,7 +29,7 @@ export default function ExamplesGallery() {
     supabase
       .from('models')
       .select('id, name, source_url, thumbnail_url, model_url')
-      .eq('is_public', true)
+      .eq('gallery', true)
       .eq('status', 'done')
       .not('thumbnail_url', 'is', null)
       .order('created_at', { ascending: false })
