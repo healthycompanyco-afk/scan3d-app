@@ -63,6 +63,7 @@ class ReconstructRequest(BaseModel):
 class CheckoutRequest(BaseModel):
     user_id: str
     plan: str  # 'creator' | 'pro'
+    currency: str | None = None  # 'eur' | 'usd'; omitido = euros
 
 
 class PortalRequest(BaseModel):
@@ -198,7 +199,7 @@ async def get_status(model_id: str):
 async def checkout(req: CheckoutRequest, user_id: str = Depends(get_user_id)):
     """Cria uma sessão de checkout do Stripe para subscrever um plano."""
     try:
-        url = create_checkout_session(user_id, req.plan)
+        url = create_checkout_session(user_id, req.plan, req.currency)
         return {"url": url}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

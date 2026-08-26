@@ -190,6 +190,10 @@ A imagem do Modal levou várias tentativas a compilar. Cada uma destas linhas ex
 - Os IDs de preço de teste e de produção são **diferentes**. Estão em variáveis de ambiente, sem valor por omissão, de propósito
 - O portal do cliente tem de ser ativado **em cada modo** (teste e produção) separadamente
 - Um reembolso **não** cancela a subscrição nem revoga o acesso; é operação manual
+- Os preços são **multi-moeda no mesmo `price_id`** (`currency_options`: EUR e USD).
+  O site escolhe pela língua — inglês cobra em dólares, português em euros — e o
+  webhook continua a reconhecer o plano pelo mesmo ID. Ao criar um preço novo,
+  **definir as duas moedas**; se faltar, o checkout cai para euros e regista o erro
 
 ### Base de dados
 

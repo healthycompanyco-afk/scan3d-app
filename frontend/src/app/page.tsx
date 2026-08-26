@@ -18,7 +18,7 @@ const LogoCube3D = dynamic(() => import('@/components/LogoCube3D'), {
 })
 
 export default function LandingPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
@@ -181,8 +181,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             {[
               { name: 'Explorer', price: t('pricing.free'), period: '', models: t('pricing.modelsFree'), highlight: false },
-              { name: 'Creator', price: '€8', period: t('plans.month'), models: t('pricing.modelsCreator'), highlight: true },
-              { name: 'Pro', price: '€20', period: t('plans.month'), models: t('pricing.modelsPro'), highlight: false },
+              { name: 'Creator', price: lang === 'en' ? '$9' : '€8', period: t('plans.month'), models: t('pricing.modelsCreator'), highlight: true },
+              { name: 'Pro', price: lang === 'en' ? '$22' : '€20', period: t('plans.month'), models: t('pricing.modelsPro'), highlight: false },
             ].map(({ name, price, period, models, highlight }) => (
               <div
                 key={name}

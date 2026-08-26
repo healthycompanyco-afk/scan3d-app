@@ -10,7 +10,7 @@ type PlanId = 'free' | 'creator' | 'pro'
 const PLANS: {
   id: PlanId
   name: string
-  price: string
+  price: Record<'eur' | 'usd', string>
   showPeriod: boolean
   features: string[]
   downloads: string[]
@@ -20,7 +20,7 @@ const PLANS: {
   {
     id: 'free',
     name: 'Explorer',
-    price: 'plans.free',
+    price: { eur: '', usd: '' },  // o plano grátis mostra t('pricing.free')
     showPeriod: false,
     features: ['plans.f.models3', 'plans.f.exp30', 'plans.f.photos', 'plans.f.quality'],
     downloads: ['.glb'],
@@ -30,7 +30,7 @@ const PLANS: {
   {
     id: 'creator',
     name: 'Creator',
-    price: '€8',
+    price: { eur: '€8', usd: '$9' },
     showPeriod: true,
     features: ['plans.f.models25', 'plans.f.exp90', 'plans.f.photos', 'plans.f.queue'],
     downloads: ['.glb', '.obj', '.stl'],
@@ -40,7 +40,7 @@ const PLANS: {
   {
     id: 'pro',
     name: 'Pro',
-    price: '€20',
+    price: { eur: '€20', usd: '$22' },
     showPeriod: true,
     features: ['plans.f.unlimited', 'plans.f.expNever', 'plans.f.photos', 'plans.f.queueMax', 'plans.f.commercial'],
     downloads: ['.glb', '.obj', '.stl'],
@@ -51,6 +51,10 @@ const PLANS: {
 
 export default function PricingPage() {
   const { t, lang } = useI18n()
+  // O idioma escolhe a moeda: inglês paga em dólares, português em euros.
+  // Os dois valores estão definidos no mesmo preço do Stripe (currency_options),
+  // por isso o webhook continua a reconhecer o plano pelo mesmo price_id.
+  const moeda = lang === 'en' ? 'usd' : 'eur'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -82,12 +86,9 @@ export default function PricingPage() {
               <h2 className="text-2xl font-bold mt-3">{plan.name}</h2>
               <div className="my-4">
                 <span className="text-4xl font-bold text-brand-600">
-                  {plan.id === 'free' ? t('pricing.free') : plan.price}
+                  {plan.id === 'free' ? t('pricing.free') : plan.price[moeda]}
                 </span>
                 {plan.showPeriod && <span className="text-gray-500">{t('plans.month')}</span>}
-                {plan.showPeriod && lang === 'en' && (
-                  <p className="text-xs text-gray-400 mt-2 leading-snug">{t('plans.fx')}</p>
-                )}
               </div>
 
               <ul className="space-y-3 text-sm text-gray-600 mb-8 flex-1">

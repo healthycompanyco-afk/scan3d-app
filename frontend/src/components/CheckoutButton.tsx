@@ -20,7 +20,7 @@ export default function CheckoutButton({
 }) {
   const supabase = createClientComponentClient()
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -37,7 +37,9 @@ export default function CheckoutButton({
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const res = await apiPost('/create-checkout-session', { user_id: user.id, plan })
+      const res = await apiPost('/create-checkout-session', {
+        user_id: user.id, plan, currency: lang === 'en' ? 'usd' : 'eur',
+      })
       if (!res.ok) {
         const e = await res.json().catch(() => ({ detail: 'Erro' }))
         throw new Error(e.detail || `Erro ${res.status}`)

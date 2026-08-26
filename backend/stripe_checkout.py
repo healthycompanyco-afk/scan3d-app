@@ -64,7 +64,13 @@ def _ensure_customer(sb, user_id: str) -> str:
     return customer.id
 
 
-def create_checkout_session(user_id: str, plan: str) -> str:
+# Moedas em que os preços estão definidos no Stripe (currency_options).
+# Pedir uma moeda fora desta lista faria o checkout rebentar, por isso
+# qualquer outra coisa cai para euros.
+MOEDAS = {"eur", "usd"}
+
+
+def create_checkout_session(user_id: str, plan: str, currency: str | None = None) -> str:
     """Cria uma sessão de checkout do Stripe e devolve o URL."""
     if plan not in PLAN_PRICE:
         raise ValueError(f"Plano inválido: {plan}")
@@ -78,14 +84,35 @@ def create_checkout_session(user_id: str, plan: str) -> str:
     sb = get_supabase()
     customer_id = _ensure_customer(sb, user_id)
 
-    session = stripe.checkout.Session.create(
-        mode="subscription",
-        customer=customer_id,
-        line_items=[{"price": PLAN_PRICE[plan], "quantity": 1}],
-        success_url=f"{FRONTEND_URL}/dashboard?upgraded=1",
-        cancel_url=f"{FRONTEND_URL}/pricing",
-        allow_promotion_codes=True,
-    )
+    moeda = (currency or "eur").lower()
+    if moeda not in MOEDAS:
+        logger.warning(f"Moeda desconhecida '{moeda}' — a usar euros.")
+        moeda = "eur"
+
+    def criar(moeda_pedida: str):
+        return stripe.checkout.Session.create(
+            mode="subscription",
+            customer=customer_id,
+            currency=moeda_pedida,
+            line_items=[{"price": PLAN_PRICE[plan], "quantity": 1}],
+            success_url=f"{FRONTEND_URL}/dashboard?upgraded=1",
+            cancel_url=f"{FRONTEND_URL}/pricing",
+            allow_promotion_codes=True,
+        )
+
+    try:
+        session = criar(moeda)
+    except stripe.error.InvalidRequestError:
+        # O preço não tem essa moeda definida (currency_options em falta no
+        # Stripe). Vender em euros é muito melhor do que não vender.
+        if moeda == "eur":
+            raise
+        logger.error(
+            f"Preço de '{plan}' não suporta {moeda.upper()} — a cair para euros. "
+            f"Adicionar a moeda ao preço no painel do Stripe."
+        )
+        session = criar("eur")
+
     return session.url
 
 
