@@ -17,6 +17,15 @@ PLAN_PRICE = {
     "pro":     os.environ.get("STRIPE_PRICE_PRO", ""),
 }
 
+# Preços antigos que ainda têm clientes ativos. O Stripe não deixa acrescentar
+# moedas a um preço já criado, por isso mudar de preço obriga a criar um novo —
+# e quem já estava fica no antigo. Estes IDs não são usados em checkouts novos,
+# só para o webhook continuar a reconhecer o plano de quem já pagava.
+PLANOS_ANTIGOS = {
+    "creator": os.environ.get("STRIPE_PRICE_CREATOR_LEGACY", ""),
+    "pro":     os.environ.get("STRIPE_PRICE_PRO_LEGACY", ""),
+}
+
 
 def _get_user_email(sb, user_id: str) -> str | None:
     """Tenta obter o email do utilizador (para o cliente Stripe)."""

@@ -3,7 +3,7 @@ import logging
 import stripe
 from fastapi import HTTPException
 from supabase_utils import get_supabase
-from stripe_checkout import PLAN_PRICE
+from stripe_checkout import PLAN_PRICE, PLANOS_ANTIGOS
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,9 @@ stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
 
 # Deriva o mapa price_id → plano a partir da configuração do checkout,
 # para que teste e produção nunca fiquem dessincronizados.
-PRICE_TO_PLAN = {price: plan for plan, price in PLAN_PRICE.items()}
+PRICE_TO_PLAN = {price: plan for plan, price in PLAN_PRICE.items() if price}
+# Clientes que ficaram num preço anterior continuam a ser reconhecidos
+PRICE_TO_PLAN.update({p: plano for plano, p in PLANOS_ANTIGOS.items() if p})
 
 # 'past_due' mantém o acesso: a Stripe volta a tentar cobrar durante dias e
 # só depois cancela (aí chega o evento .deleted). Despromover logo à primeira

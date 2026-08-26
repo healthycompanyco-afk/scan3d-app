@@ -127,6 +127,7 @@ O reset mensal do contador é feito **em código** (`plans.py`, ao verificar o l
 | `STRIPE_SECRET_KEY` | `sk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` do endpoint **em produção** |
 | `STRIPE_PRICE_CREATOR`, `STRIPE_PRICE_PRO` | IDs de preço **live** (obrigatórios, sem valor por omissão) |
+| `STRIPE_PRICE_CREATOR_LEGACY`, `STRIPE_PRICE_PRO_LEGACY` | IDs de preços antigos com clientes ativos (opcionais) |
 | `MODAL_TRELLIS_URL` | endpoint do job de geração |
 | `RESEND_API_KEY`, `EMAIL_FROM` | emails (`Snap3D <ola@snap3d.app>`) |
 | `SENTRY_DSN` | monitorização de erros (opcional) |
@@ -192,8 +193,14 @@ A imagem do Modal levou várias tentativas a compilar. Cada uma destas linhas ex
 - Um reembolso **não** cancela a subscrição nem revoga o acesso; é operação manual
 - Os preços são **multi-moeda no mesmo `price_id`** (`currency_options`: EUR e USD).
   O site escolhe pela língua — inglês cobra em dólares, português em euros — e o
-  webhook continua a reconhecer o plano pelo mesmo ID. Ao criar um preço novo,
-  **definir as duas moedas**; se faltar, o checkout cai para euros e regista o erro
+  webhook reconhece o plano pelo mesmo ID. Ao criar um preço novo, **definir as
+  duas moedas logo na criação**: o painel do Stripe só permite multi-moeda no
+  formulário de criação, e a API é a única forma de acrescentar moedas depois
+  (e o Stripe Shell é só de leitura em produção). Se a moeda faltar, o checkout
+  cai para euros e regista o erro em vez de falhar a venda
+- Trocar de preço deixa os clientes antigos no preço anterior. Os IDs desses
+  ficam em `STRIPE_PRICE_CREATOR_LEGACY` / `STRIPE_PRICE_PRO_LEGACY`, só para o
+  webhook os continuar a reconhecer — não são usados em checkouts novos
 
 ### Base de dados
 
