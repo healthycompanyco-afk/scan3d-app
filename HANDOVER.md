@@ -191,6 +191,19 @@ A imagem do Modal levou várias tentativas a compilar. Cada uma destas linhas ex
 - O portal do cliente tem de ser ativado **em cada modo** (teste e produção) separadamente
 - Um reembolso **não** cancela a subscrição nem revoga o acesso; é operação manual
 
+### Base de dados
+
+A coluna `models.expires_at` **tem de aceitar nulos**. O backend escreve `NULL`
+para o plano Pro ("nunca expira"), e durante algum tempo a coluna esteve
+`NOT NULL` em produção — qualquer geração de um cliente Pro teria falhado.
+Corrigido em agosto de 2026, antes de existir o primeiro cliente Pro.
+
+A coluna `gallery` é **diferente** de `is_public`. `is_public` faz o link e o
+widget de embed funcionarem para quem não tem conta; `gallery` é curadoria
+manual do que aparece na página inicial. Manter separadas: os modelos gerados
+para prospetos são públicos mas usam fotos das lojas dos prospetos e não podem
+aparecer no site.
+
 ### Emails
 
 São **dois sistemas**: o Supabase envia confirmação de conta e recuperação de password (SMTP personalizado apontado ao Resend); o backend envia boas-vindas e "modelo pronto". Mudar de fornecedor implica mexer nos dois sítios.

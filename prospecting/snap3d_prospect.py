@@ -100,6 +100,11 @@ def agora() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def daqui_a_anos(anos: int) -> str:
+    agora_ = datetime.now(timezone.utc)
+    return agora_.replace(year=agora_.year + anos).isoformat(timespec="seconds")
+
+
 def fazer_slug(texto: str) -> str:
     limpo = re.sub(r"[^a-z0-9]+", "-", texto.lower()).strip("-")
     return limpo[:50] or "prospeto"
@@ -286,7 +291,8 @@ def gerar_modelo(slug: str, nome: str, env: dict) -> str:
         #    is_public: o destinatário abre o link sem ter conta.
         #    gallery=False: não vai para a homepage — as fotos são da loja dele.
         #    watermark: a marca de água é o ponto, é ela que faz a publicidade.
-        #    expires_at NULL: um link oferecido não pode morrer daqui a 30 dias.
+        #    expires_at daqui a 10 anos: um link oferecido não pode morrer daqui
+        #    a 30 dias, e a coluna não aceita nulos em produção.
         criacao = cliente.post(
             f"{url_sb}/rest/v1/models",
             headers={**cab, "Content-Type": "application/json",
@@ -294,7 +300,7 @@ def gerar_modelo(slug: str, nome: str, env: dict) -> str:
             json={
                 "user_id": user_id, "name": nome, "input_type": "ai_single",
                 "status": "pending", "is_public": True, "gallery": False,
-                "watermark": True, "expires_at": None,
+                "watermark": True, "expires_at": daqui_a_anos(10),
                 "frames_count": len(fotos),
             },
         )
