@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { I18nProvider } from '@/lib/i18n'
 import { Analytics } from '@vercel/analytics/next'
+import CapturarOrigem from '@/components/CapturarOrigem'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt">
       <body className={inter.className}>
+        <CapturarOrigem />
         <I18nProvider>{children}</I18nProvider>
         {/* Analytics sem cookies — não exige banner de consentimento */}
         <Analytics />

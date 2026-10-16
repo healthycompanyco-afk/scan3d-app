@@ -12,3 +12,6 @@ __pycache__/
 
 # Cópias de segurança locais (contêm dados de clientes)
 backups/
+
+# Saída gerada pelo graphify — reconstruível, não pertence ao repositório
+graphify-out/

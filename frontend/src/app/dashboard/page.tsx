@@ -8,6 +8,7 @@ import UsageBar from '@/components/UsageBar'
 import Logo from '@/components/Logo'
 import { apiPost } from '@/lib/api'
 import { useI18n } from '@/lib/i18n'
+import { lerOrigem } from '@/lib/utm'
 import LanguageToggle from '@/components/LanguageToggle'
 
 type Model = {
@@ -26,6 +27,7 @@ type Profile = {
   plan: string
   models_this_month: number
   lang?: string
+  utm_source?: string | null
 }
 
 const PLAN_LIMITS: Record<string, number> = { free: 3, creator: 25, pro: Infinity }
@@ -46,7 +48,10 @@ export default function DashboardPage() {
 
       const nowIso = new Date().toISOString()
       const [{ data: profileData }, { data: modelsData }] = await Promise.all([
-        supabase.from('user_profiles').select('plan, models_this_month, lang').eq('id', user.id).single(),
+        // `select('*')` em vez da lista de colunas: pedir uma coluna que ainda
+        // não exista faz o Supabase falhar a consulta toda e deixa o painel em
+        // branco. Com `*`, uma migração por correr não parte nada.
+        supabase.from('user_profiles').select('*').eq('id', user.id).single(),
         supabase.from('models').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ])
 
@@ -59,6 +64,16 @@ export default function DashboardPage() {
       // (cobre quem entrou com Google ou nunca tocou no seletor).
       if (profileData && profileData.lang !== lang) {
         supabase.from('user_profiles').update({ lang }).eq('id', user.id).then(() => {})
+      }
+
+      // Origem da visita: o registo com Google não deixa passar metadata,
+      // por isso grava-se aqui. Só se ainda estiver vazia — a atribuição é
+      // do primeiro toque e não pode ser reescrita numa visita posterior.
+      if (profileData && !profileData.utm_source) {
+        const origem = lerOrigem()
+        if (origem.utm_source) {
+          supabase.from('user_profiles').update(origem).eq('id', user.id).then(() => {})
+        }
       }
 
       // Email de boas-vindas (o backend garante que só envia uma vez)

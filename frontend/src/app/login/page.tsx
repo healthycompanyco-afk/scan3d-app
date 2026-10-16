@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/lib/i18n'
+import { lerOrigem } from '@/lib/utm'
 import LanguageToggle from '@/components/LanguageToggle'
 
 export default function LoginPage() {
@@ -26,7 +27,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { lang } },
+        options: { data: { lang, ...lerOrigem() } },
       })
       if (error) setMessage(error.message)
       else setMessage(t('login.checkEmail'))

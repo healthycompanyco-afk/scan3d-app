@@ -224,19 +224,29 @@ def reconstruct_trellis(model_id: str, user_id: str):
             except Exception:
                 stl_path = None  # se falhar, segue sem STL
 
-            # 4d. Thumbnail — renderiza uma imagem do modelo (vista frontal)
+            # 4d. Miniatura e giro completo — a mesma órbita serve as duas
+            #     coisas: o primeiro fotograma é a miniatura, todos juntos
+            #     fazem o vídeo de 360 graus.
             thumb_path = workdir / "thumb.png"
+            video_path = workdir / "turntable.mp4"
             try:
                 from trellis.utils import render_utils
                 from PIL import Image as PILImage
-                # Fundo branco (o padrão é preto) para a miniatura combinar
-                # com as fotos de entrada na galeria
+                # Fundo branco (o padrão é preto) para combinar com as fotos
+                # de entrada na galeria
                 frames = render_utils.render_video(
-                    outputs["gaussian"][0], resolution=512, num_frames=8, bg_color=(1, 1, 1)
+                    outputs["gaussian"][0], resolution=1024, num_frames=60, bg_color=(1, 1, 1)
                 )["color"]
-                PILImage.fromarray(frames[0]).save(str(thumb_path))
+                PILImage.fromarray(frames[0]).resize((512, 512)).save(str(thumb_path))
+                try:
+                    import imageio
+                    # 30 fps sobre 60 fotogramas = 2 s por volta completa
+                    imageio.mimsave(str(video_path), frames, fps=30, quality=8)
+                except Exception:
+                    video_path = None
             except Exception:
-                thumb_path = None  # se falhar, segue sem thumbnail
+                thumb_path = None  # se falhar, segue sem miniatura
+                video_path = None
 
             # 5. Upload para Supabase Storage (GLB + splat)
             glb_storage = f"{user_id}/{model_id}/model.glb"
@@ -280,6 +290,14 @@ def reconstruct_trellis(model_id: str, user_id: str):
                 update_data["source_url"] = sb.storage.from_("models").get_public_url(src_storage)
             except Exception:
                 pass
+
+            # Giro de 360 graus: usado para divulgação e para pré-visualização
+            if video_path and video_path.exists() and video_path.stat().st_size > 1000:
+                video_storage = f"{user_id}/{model_id}/turntable.mp4"
+                sb.storage.from_("models").upload(
+                    video_storage, video_path.read_bytes(),
+                    {"content-type": "video/mp4", "upsert": "true"}
+                )
 
             if thumb_path and thumb_path.exists() and thumb_path.stat().st_size > 500:
                 thumb_storage = f"{user_id}/{model_id}/thumb.png"

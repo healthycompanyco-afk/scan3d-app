@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     plan_expires_at     TIMESTAMPTZ,                    -- não utilizado atualmente
     welcomed            BOOLEAN NOT NULL DEFAULT FALSE, -- email de boas-vindas já enviado
     lang                TEXT NOT NULL DEFAULT 'pt',     -- idioma dos emails: pt | en
+    utm_source          TEXT,                           -- origem do registo (primeiro toque)
+    utm_medium          TEXT,
+    utm_campaign        TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -58,8 +61,14 @@ RETURNS TRIGGER
 LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
     -- O idioma vem da metadata enviada no registo (seletor PT/EN do site)
-    INSERT INTO public.user_profiles (id, lang)
-    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'lang', 'pt'))
+    INSERT INTO public.user_profiles (id, lang, utm_source, utm_medium, utm_campaign)
+    VALUES (
+        NEW.id,
+        COALESCE(NEW.raw_user_meta_data->>'lang', 'pt'),
+        NEW.raw_user_meta_data->>'utm_source',
+        NEW.raw_user_meta_data->>'utm_medium',
+        NEW.raw_user_meta_data->>'utm_campaign'
+    )
     ON CONFLICT (id) DO NOTHING;
     RETURN NEW;
 END;

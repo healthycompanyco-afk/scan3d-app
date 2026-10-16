@@ -89,6 +89,7 @@ frontend/          Next.js (deploy no Vercel, rootDir=frontend)
 | `plan_expires_at` | não utilizado atualmente |
 | `welcomed` | evita repetir o email de boas-vindas |
 | `lang` | idioma dos emails (`pt`/`en`), gravado quando o utilizador troca de idioma no site |
+| `utm_source` `utm_medium` `utm_campaign` | de onde veio o registo. Primeiro toque: gravam-se uma vez e nunca são reescritos |
 
 ### `models`
 

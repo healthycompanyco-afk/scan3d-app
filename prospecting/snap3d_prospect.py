@@ -152,6 +152,19 @@ def ampliar(url: str) -> str:
     return url
 
 
+def chave_imagem(url: str) -> str:
+    """Identidade da imagem, ignorando as variantes de tamanho.
+
+    O WordPress serve a mesma fotografia como `foto-scaled.jpg`, `foto-50x50.jpg`
+    e `foto.jpg`. Sem normalizar, a mesma peça entrava três vezes no conjunto e
+    ocupava o lugar de ângulos que faltavam.
+    """
+    base = url.split("?")[0].lower()
+    base = re.sub(r"-scaled(?=\.[a-z]+$)", "", base)
+    base = re.sub(r"[-_]\d{2,4}x\d{2,4}(?=\.[a-z]+$)", "", base)
+    return base
+
+
 def fotos_shopify(cliente: httpx.Client, url_pagina: str) -> list[str]:
     """Fotos do produto pela via oficial do Shopify.
 
@@ -211,13 +224,21 @@ def extrair_fotos(url_pagina: str, maximo: int, slug: str) -> Path:
         for bruta in candidatas:
             if bruta.startswith("data:") or bruta.lower().endswith((".svg", ".gif")):
                 continue
+            # Logótipos, ícones e banners da loja não são o produto
+            if any(x in bruta.lower() for x in ("logo", "icon", "favicon", "banner", "placeholder")):
+                continue
             original = urljoin(url_pagina, bruta)
-            chave = original.split("?")[0]
-            if chave not in vistas:
-                vistas.add(chave)
-                # Tentar a versão grande, mas guardar o original: nem sempre o
-                # sufixo de tamanho é um sufixo de tamanho.
-                absolutas.append((ampliar(original), original))
+            grande = ampliar(original)
+            # Deduplicar pelo URL JÁ ampliado: no WooCommerce a mesma foto
+            # aparece como `-scaled` e `-50x50`, que só colidem depois de
+            # lhes tirar o sufixo de tamanho.
+            chave = chave_imagem(grande)
+            if chave in vistas:
+                continue
+            vistas.add(chave)
+            # Guardar também o original: nem sempre o sufixo de tamanho é
+            # mesmo um sufixo de tamanho.
+            absolutas.append((grande, original))
 
         destino = TRABALHO / slug
         destino.mkdir(parents=True, exist_ok=True)
