@@ -302,6 +302,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>('pt')
 
   useEffect(() => {
+    // Ordem de prioridade: ?lang= no URL, depois a escolha guardada, depois
+    // o idioma do browser. O parâmetro existe para a publicidade: um anúncio
+    // em inglês tem de abrir em inglês mesmo que o browser esteja noutra
+    // língua, senão o clique está pago e perdido.
+    const pedido = new URLSearchParams(window.location.search).get('lang') as Lang | null
+    if (pedido === 'pt' || pedido === 'en') {
+      setLangState(pedido)
+      try { localStorage.setItem('lang', pedido) } catch { /* janela privada */ }
+      return
+    }
     const saved = (typeof window !== 'undefined' && localStorage.getItem('lang')) as Lang | null
     if (saved === 'pt' || saved === 'en') setLangState(saved)
     else if (typeof navigator !== 'undefined' && navigator.language.toLowerCase().startsWith('en')) setLangState('en')
